@@ -7,11 +7,15 @@
     "license": "MIT",
     "private": true,
     "scripts": {
-        "start": "ts-node src/main.ts"
+        "start": "ts-node src/main.ts",
+        "dev": "nodemon -L"
     },
     "dependencies": {
         "@types/node": "^12.0.10",
         "ts-node": "^8.3.0",
         "typescript": "^3.5.2"
+    },
+    "devDependencies": {
+        "nodemon": "^1.19.1"
     }
 }
