@@ -6,5 +6,5 @@ WORKDIR /app
 EXPOSE 3000
 
 CMD yarn install \
-    && yarn run typeorm migration:up \
+    && yarn run typeorm migration:run \
     && yarn run dev

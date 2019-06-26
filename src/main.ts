@@ -1,3 +1,6 @@
+import "reflect-metadata";
+
+
 function main(): void {
     console.log("Hello API");
 }
