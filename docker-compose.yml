@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:11.4-alpine
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: password
+
+  api:
+    build: .
+    volumes:
+      - ./:/app
+    ports:
+      - 3000:3000
+    depends_on:
+      - db
+
+volumes:
+  db_data:
