@@ -1,0 +1,17 @@
+{
+    "name": "api",
+    "version": "0.1.0",
+    "main": "src/main.ts",
+    "repository": "git@github.com:benard-g/api.git",
+    "author": "Guillaume Benard <guillaume.benard@epitech.eu>",
+    "license": "MIT",
+    "private": true,
+    "scripts": {
+        "start": "ts-node src/main.ts"
+    },
+    "dependencies": {
+        "@types/node": "^12.0.10",
+        "ts-node": "^8.3.0",
+        "typescript": "^3.5.2"
+    }
+}
