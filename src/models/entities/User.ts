@@ -7,7 +7,7 @@ class User {
     public id: number;
 
     @Column()
-    @Index()
+    @Index({ unique: true })
     public email: string;
 
     @Column()
