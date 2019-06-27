@@ -13,6 +13,7 @@ import UserController from "./controllers/UserController";
 import JwtService from "./services/JwtService";
 import PasswordService from "./services/PasswordService";
 
+import PendingUserRepository from "./models/PendingUserRepository";
 import UserRepository from "./models/UserRepository";
 
 import EmailValidator from "./validators/EmailValidator";
@@ -44,6 +45,7 @@ function main(): void {
 
 function createServer(conn: Connection, jwtSecretKey: string): Server {
     // Create Repositories
+    const pendingUserRepository = new PendingUserRepository(conn);
     const userRepository = new UserRepository(conn);
 
     // Create Validators
@@ -58,6 +60,7 @@ function createServer(conn: Connection, jwtSecretKey: string): Server {
     // Create Controllers
     const apiEndpointController = new ApiEndpointController();
     const authLocalController = new AuthLocalController(
+        pendingUserRepository,
         userRepository,
         jwtService,
         passwordService,

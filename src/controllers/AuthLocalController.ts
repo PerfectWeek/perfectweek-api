@@ -1,7 +1,10 @@
 import { Request, Response } from "express";
 import Boom from "@hapi/boom";
+import Uuid from "uuid/v4";
 
+import PendingUser from "../models/entities/PendingUser";
 import User from "../models/entities/User";
+import PendingUserRepository from "../models/PendingUserRepository";
 import UserRepository from "../models/UserRepository";
 
 import PasswordService from "../services/PasswordService";
@@ -16,6 +19,7 @@ import { trim } from "../utils/string/trim";
 
 class AuthLocalController {
 
+    private readonly pendingUserRepository: PendingUserRepository
     private readonly userRepository: UserRepository;
 
     private readonly jwtService: JwtService;
@@ -26,6 +30,7 @@ class AuthLocalController {
     private readonly passwordValidator: PasswordValidator;
 
     constructor(
+        pendingUserRepository: PendingUserRepository,
         userRepository: UserRepository,
 
         jwtService: JwtService,
@@ -35,6 +40,7 @@ class AuthLocalController {
         nameValidator: NameValidator,
         passwordValidator: PasswordValidator
     ) {
+        this.pendingUserRepository = pendingUserRepository;
         this.userRepository = userRepository;
         this.jwtService = jwtService;
         this.passwordService = passwordService;
@@ -65,25 +71,53 @@ class AuthLocalController {
         }
 
         const existingUser = await this.userRepository.getUserByEmail(userEmail);
-        if (existingUser) {
+        const existingPendingUser = await this.pendingUserRepository.getPendingUserByEmail(userEmail);
+        if (existingUser || existingPendingUser) {
             throw Boom.conflict(`User with email "${userEmail}" already exists`);
         }
 
         const cipheredPassword = await this.passwordService.cipherPassword(userPassword);
-        const user = new User({
+
+        const uuid = Uuid();
+
+        const pendingUser = new PendingUser({
             email: userEmail,
             name: userName,
-            cipheredPassword: cipheredPassword
+            cipheredPassword: cipheredPassword,
+            uuid: uuid
         });
-        const createdUser = await this.userRepository.createUser(user);
+        const createdPendingUser = await this.pendingUserRepository.createPendingUser(pendingUser);
 
         res.status(201).json({
             message: "User created",
             user: {
-                id: createdUser.id,
-                name: createdUser.name,
-                email: createdUser.email
-            }
+                id: createdPendingUser.id,
+                name: createdPendingUser.name,
+                email: createdPendingUser.email
+            },
+            uuid: createdPendingUser.uuid // TODO: only in dev mode
+        });
+    };
+
+    public readonly validateEmail = async (req: Request, res: Response) => {
+        const userUuid: string = req.params.uuid;
+
+        const pendingUser = await this.pendingUserRepository.getPendingUserByUuid(userUuid);
+        if (!pendingUser) {
+            throw Boom.notFound("No matching user found");
+        }
+
+        const user = new User({
+            name: pendingUser.name,
+            email: pendingUser.email,
+            cipheredPassword: pendingUser.cipheredPassword
+        });
+
+        await this.userRepository.createUser(user);
+        await this.pendingUserRepository.deletePendingUserById(pendingUser.id);
+
+        res.status(200).json({
+            message: "Email validated"
         });
     };
 

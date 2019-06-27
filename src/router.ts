@@ -23,6 +23,7 @@ export function createRouter(
 
     router.post("/auth/local/register", asyncHandler(authLocalController.registerUser));
     router.post("/auth/local/login", asyncHandler(authLocalController.loginUser));
+    router.get("/auth/local/validate-email/:uuid", asyncHandler(authLocalController.validateEmail));
 
     router.get("/users/me", asyncHandler(authenticatedOnly), userController.getMyInfo);
 
