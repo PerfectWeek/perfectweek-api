@@ -22,6 +22,7 @@ services:
       DB_HOST: db
       DB_PORT: 5432
       DB_PASSWORD: password
+      JWT_SECRET_KEY: secret
 
 volumes:
   db_data:
