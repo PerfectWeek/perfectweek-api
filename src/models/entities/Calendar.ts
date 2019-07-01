@@ -1,13 +1,14 @@
 import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
 
 import { baseTimeSlotPreferences, TimeSlotPreferences } from "../../core/utils/TimeSlotPreferences";
+
 import CalendarMember from "./CalendarMember";
 
 
 @Entity("calendars")
 class Calendar {
 
-    private static DEFAULT_COLOR: string = "#5abc95";
+    private static readonly DEFAULT_COLOR: string = "#5abc95";
 
     @PrimaryGeneratedColumn()
     public id: number;

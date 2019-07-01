@@ -9,6 +9,8 @@ import User from "./User";
 @Entity("calendar_members")
 class CalendarMember {
 
+    private static readonly DEFAULT_ROLE: CalendarMemberRole = CalendarMemberRole.Admin;
+
     @PrimaryColumn({ name: "user_id" })
     public userId: number;
 
@@ -16,7 +18,7 @@ class CalendarMember {
     @Index()
     public calendarId: number;
 
-    @Column({ default: CalendarMemberRole.Admin })
+    @Column({ default: CalendarMember.DEFAULT_ROLE })
     public role: CalendarMemberRole;
 
     @Column({ name: "invitation_confirmed" })
@@ -28,7 +30,7 @@ class CalendarMember {
     constructor(data?: CalendarMemberData) {
         this.userId = data && data.userId || 0;
         this.calendarId = data && data.calendarId || 0;
-        this.role = data && data.role || CalendarMemberRole.Admin;
+        this.role = data && data.role || CalendarMember.DEFAULT_ROLE;
         this.invitationConfirmed = data && data.invitationConfirmed || true;
 
         this.calendar = undefined;
