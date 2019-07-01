@@ -1,4 +1,5 @@
 import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
+import CalendarMember from "./CalendarMember";
 
 
 @Entity("users")
@@ -20,12 +21,16 @@ class User {
     @Column({ default: 0 })
     public timezone: number;
 
+    public calendars?: CalendarMember[];
+
     constructor(data?: UserData) {
         this.id = 0;
         this.email = data && data.email || "";
         this.name = data && data.name || "";
         this.cipheredPassword = data && data.cipheredPassword || "";
         this.timezone = data && data.timezone || 0;
+
+        this.calendars = undefined;
     }
 }
 
