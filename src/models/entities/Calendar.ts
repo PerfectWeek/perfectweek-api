@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
 
 import { baseTimeSlotPreferences, TimeSlotPreferences } from "../../core/utils/TimeSlotPreferences";
 
+import CalendarEntry from "./CalendarEntry";
 import CalendarMember from "./CalendarMember";
 
 
@@ -26,6 +27,7 @@ class Calendar {
     })
     public timeSlotPreferences: TimeSlotPreferences;
 
+    public entries?: CalendarEntry[];
     public members?: CalendarMember[];
 
     constructor(data?: CalendarData) {
@@ -34,6 +36,7 @@ class Calendar {
         this.color = data && data.color || Calendar.DEFAULT_COLOR;
         this.timeSlotPreferences = baseTimeSlotPreferences;
 
+        this.entries = undefined;
         this.members = undefined;
     }
 }

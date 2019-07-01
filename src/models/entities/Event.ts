@@ -2,14 +2,15 @@ import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
 
 import EventVisibility from "../../core/enums/EventVisibility";
 
+import CalendarEntry from "./CalendarEntry";
 import EventAttendee from "./EventAttendee";
 
 
 @Entity("events")
 class Event {
 
-    private static readonly DEFAULT_VISIBILITY = EventVisibility.Private;
-    private static readonly DEFAULT_COLOR = "#5abc95";
+    private static readonly DEFAULT_VISIBILITY: EventVisibility = EventVisibility.Private;
+    private static readonly DEFAULT_COLOR: string = "#5abc95";
 
     @PrimaryGeneratedColumn()
     public id: number;
@@ -39,6 +40,7 @@ class Event {
     public color: string;
 
     public attendees?: EventAttendee[];
+    public owningCalendars?: CalendarEntry[];
 
     constructor(data?: EventData) {
         this.id = 0;
@@ -52,6 +54,7 @@ class Event {
         this.color = data && data.color || Event.DEFAULT_COLOR;
 
         this.attendees = undefined;
+        this.owningCalendars = undefined;
     }
 }
 
