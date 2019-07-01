@@ -13,6 +13,8 @@ import UserController from "./controllers/UserController";
 import JwtService from "./services/JwtService";
 import PasswordService from "./services/PasswordService";
 
+import UserView from "./views/UserView";
+
 import PendingUserRepository from "./models/PendingUserRepository";
 import UserRepository from "./models/UserRepository";
 
@@ -57,6 +59,9 @@ function createServer(conn: Connection, jwtSecretKey: string): Server {
     const jwtService = new JwtService(jwtSecretKey);
     const passwordService = new PasswordService();
 
+    // Create Views
+    const userView = new UserView();
+
     // Create Controllers
     const apiEndpointController = new ApiEndpointController();
     const authLocalController = new AuthLocalController(
@@ -68,7 +73,7 @@ function createServer(conn: Connection, jwtSecretKey: string): Server {
         nameValidator,
         passwordValidator
     );
-    const userController = new UserController();
+    const userController = new UserController(userView);
 
     // Create middlewares
     const authenticatedOnlyMiddleware = AuthenticatedOnlyMiddleware.generateAuthenticatedOnlyMiddleware(
