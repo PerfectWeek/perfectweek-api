@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 
-import { getRequestingUser } from "../middlewares/utils/getRequestingUser";
+import { getRequestingUser } from "../middleware/utils/getRequestingUser";
 
 
 class UserController {

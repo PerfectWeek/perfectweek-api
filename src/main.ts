@@ -20,7 +20,7 @@ import EmailValidator from "./validators/EmailValidator";
 import NameValidator from "./validators/NameValidator";
 import PasswordValidator from "./validators/PasswordValidator";
 
-import * as AuthenticatedOnly from "./middlewares/authenticatedOnly";
+import * as AuthenticatedOnlyMiddleware from "./middleware/authenticatedOnlyMiddleware";
 
 
 const API_PORT: number = 3000;
@@ -71,7 +71,10 @@ function createServer(conn: Connection, jwtSecretKey: string): Server {
     const userController = new UserController();
 
     // Create middlewares
-    const authenticatedOnlyMiddleware = AuthenticatedOnly.generateMiddleware(userRepository, jwtService);
+    const authenticatedOnlyMiddleware = AuthenticatedOnlyMiddleware.generateAuthenticatedOnlyMiddleware(
+        userRepository,
+        jwtService
+    );
 
     // Create Router
     const router = Router.createRouter(

@@ -4,8 +4,8 @@ import ApiEndpointController from "./controllers/ApiEndpointController";
 import AuthLocalController from "./controllers/AuthLocalController";
 import UserController from "./controllers/UserController";
 
-import { AuthenticatedOnlyMiddleware } from "./middlewares/authenticatedOnly";
-import asyncHandler from "./middlewares/utils/asyncHandler";
+import { AuthenticatedOnlyMiddleware } from "./middleware/authenticatedOnlyMiddleware";
+import asyncHandler from "./middleware/utils/asyncHandler";
 
 
 export function createRouter(

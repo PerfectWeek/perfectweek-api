@@ -10,7 +10,7 @@ export type AuthenticatedOnlyMiddleware = (req: Request, res: Response, next?: N
 
 const BEARER: string = "Bearer ";
 
-export function generateMiddleware(
+export function generateAuthenticatedOnlyMiddleware(
     userRepository: UserRepository,
     jwtService: JwtService
 ): AuthenticatedOnlyMiddleware {
