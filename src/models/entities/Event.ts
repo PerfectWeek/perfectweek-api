@@ -2,6 +2,8 @@ import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
 
 import EventVisibility from "../../core/enums/EventVisibility";
 
+import EventAttendee from "./EventAttendee";
+
 
 @Entity("events")
 class Event {
@@ -36,6 +38,8 @@ class Event {
     @Column({ default: Event.DEFAULT_COLOR })
     public color: string;
 
+    public attendees?: EventAttendee[];
+
     constructor(data?: EventData) {
         this.id = 0;
         this.name = data && data.name || "";
@@ -46,6 +50,8 @@ class Event {
         this.location = data && data.location || "";
         this.visibility = data && data.visibility || Event.DEFAULT_VISIBILITY;
         this.color = data && data.color || Event.DEFAULT_COLOR;
+
+        this.attendees = undefined;
     }
 }
 

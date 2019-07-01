@@ -1,6 +1,7 @@
 import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 
 import CalendarMember from "./CalendarMember";
+import Event from "./Event";
 
 
 @Entity("users")
@@ -23,6 +24,7 @@ class User {
     public timezone: number;
 
     public calendars?: CalendarMember[];
+    public events?: Event[];
 
     constructor(data?: UserData) {
         this.id = 0;
@@ -32,6 +34,7 @@ class User {
         this.timezone = data && data.timezone || 0;
 
         this.calendars = undefined;
+        this.events = undefined;
     }
 }
 
