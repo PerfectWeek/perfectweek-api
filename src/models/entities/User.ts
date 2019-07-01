@@ -3,6 +3,7 @@ import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity("users")
 class User {
+
     @PrimaryGeneratedColumn()
     public id: number;
 

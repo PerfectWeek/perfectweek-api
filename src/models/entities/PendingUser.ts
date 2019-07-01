@@ -3,6 +3,7 @@ import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity("pending_users")
 class PendingUser {
+
     @PrimaryGeneratedColumn()
     public id: number;
 
