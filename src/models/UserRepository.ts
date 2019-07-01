@@ -28,6 +28,12 @@ class UserRepository {
             .getRepository(User)
             .findOne({ where: { id: id } });
     };
+
+    public readonly updateUser = async (user: User): Promise<void> => {
+        await this.conn
+            .getRepository(User)
+            .update({ id: user.id }, user);
+    };
 }
 
 

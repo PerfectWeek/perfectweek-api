@@ -15,17 +15,38 @@ export function createRouter(
     userController: UserController,
 
     // Middleware
-    authenticatedOnly: AuthenticatedOnlyMiddleware
+    authenticatedOnlyMiddleware: AuthenticatedOnlyMiddleware
 ): Router {
     const router = Router();
 
-    router.get("/", apiEndpointController.endpoint);
+    router.get(
+        "/",
+        apiEndpointController.endpoint
+    );
 
-    router.post("/auth/local/register", asyncHandler(authLocalController.registerUser));
-    router.post("/auth/local/login", asyncHandler(authLocalController.loginUser));
-    router.get("/auth/local/validate-email/:uuid", asyncHandler(authLocalController.validateEmail));
+    router.post(
+        "/auth/local/register",
+        asyncHandler(authLocalController.registerUser)
+    );
+    router.post(
+        "/auth/local/login",
+        asyncHandler(authLocalController.loginUser)
+    );
+    router.get(
+        "/auth/local/validate-email/:uuid",
+        asyncHandler(authLocalController.validateEmail)
+    );
 
-    router.get("/users/me", asyncHandler(authenticatedOnly), userController.getMyInfo);
+    router.get(
+        "/users/me",
+        asyncHandler(authenticatedOnlyMiddleware),
+        userController.getMyInfo
+    );
+    router.post(
+        "/users/me/timezone",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(userController.updateTimezone)
+    );
 
     return router;
 }

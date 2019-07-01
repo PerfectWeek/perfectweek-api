@@ -73,7 +73,10 @@ function createServer(conn: Connection, jwtSecretKey: string): Server {
         nameValidator,
         passwordValidator
     );
-    const userController = new UserController(userView);
+    const userController = new UserController(
+        userRepository,
+        userView
+    );
 
     // Create middlewares
     const authenticatedOnlyMiddleware = AuthenticatedOnlyMiddleware.generateAuthenticatedOnlyMiddleware(
