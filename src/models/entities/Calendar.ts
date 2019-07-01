@@ -6,11 +6,16 @@ import { baseTimeSlotPreferences, TimeSlotPreferences } from "../../core/utils/T
 @Entity("calendars")
 class Calendar {
 
+    private static DEFAULT_COLOR: string = "#5abc95";
+
     @PrimaryGeneratedColumn()
     public id: number;
 
     @Column()
     public name: string;
+
+    @Column({ default: Calendar.DEFAULT_COLOR })
+    public color: string;
 
     @Column({
         name: "time_slot_preferences",
@@ -22,12 +27,14 @@ class Calendar {
     constructor(data?: CalendarData) {
         this.id = 0;
         this.name = data && data.name || "";
+        this.color = data && data.color || Calendar.DEFAULT_COLOR;
         this.timeSlotPreferences = baseTimeSlotPreferences;
     }
 }
 
 type CalendarData = {
-    name: string
+    name: string,
+    color?: string
 };
 
 
