@@ -19,10 +19,8 @@ class Server {
         this.addErrorHandler();
     }
 
-    public readonly start = (port: number) => {
-        this.app.listen(port, () => {
-            console.info(`Server started on port ${port}`);
-        });
+    public readonly start = (port: number, onStart: () => void) => {
+        this.app.listen(port, onStart);
     };
 
     private add404Handler(): void {

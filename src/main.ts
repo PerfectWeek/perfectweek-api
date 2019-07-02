@@ -40,11 +40,13 @@ function main(): void {
 
     createConnection(dbConfig)
         .then((conn: Connection) => {
-            console.info("Connected to database");
+            console.info("[LOG] Connected to database");
 
             const server = createServer(conn, jwtSecretKey);
 
-            server.start(apiPort);
+            server.start(apiPort, () => {
+                console.info(`[LOG] Server started on port ${apiPort}`);
+            });
         });
 }
 
