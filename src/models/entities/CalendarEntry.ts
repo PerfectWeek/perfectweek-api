@@ -7,8 +7,6 @@ import Event from "./Event";
 @Entity("calendar_entries")
 class CalendarEntry {
 
-    private static readonly DEFAULT_COLOR: string = "#5abc95";
-
     @PrimaryColumn({ name: "calendar_id" })
     public calendarId: number;
 
@@ -16,7 +14,7 @@ class CalendarEntry {
     @Index()
     public eventId: number;
 
-    @Column({ default: CalendarEntry.DEFAULT_COLOR })
+    @Column()
     public color: string;
 
     public calendar?: Calendar;
@@ -25,7 +23,7 @@ class CalendarEntry {
     constructor(data?: CalendarEntryData) {
         this.calendarId = data && data.calendarId || 0;
         this.eventId = data && data.eventId || 0;
-        this.color = data && data.color || CalendarEntry.DEFAULT_COLOR;
+        this.color = data && data.color || "";
 
         this.calendar = undefined;
         this.event = undefined;
@@ -35,7 +33,7 @@ class CalendarEntry {
 type CalendarEntryData = {
     calendarId: number,
     eventId: number,
-    color?: string
+    color: string
 };
 
 

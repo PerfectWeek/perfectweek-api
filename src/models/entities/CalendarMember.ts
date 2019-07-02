@@ -31,7 +31,7 @@ class CalendarMember {
         this.userId = data && data.userId || 0;
         this.calendarId = data && data.calendarId || 0;
         this.role = data && data.role || CalendarMember.DEFAULT_ROLE;
-        this.invitationConfirmed = data && data.invitationConfirmed || true;
+        this.invitationConfirmed = data ? data.invitationConfirmed : true;
 
         this.calendar = undefined;
         this.member = undefined;
