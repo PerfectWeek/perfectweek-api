@@ -42,7 +42,7 @@ export function createRouter(
         asyncHandler(authenticatedOnlyMiddleware),
         userController.getMyInfo
     );
-    router.post(
+    router.put(
         "/users/me/timezone",
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(userController.updateTimezone)
