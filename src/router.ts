@@ -30,7 +30,7 @@ export function createRouter(
     );
     router.post(
         "/auth/local/login",
-        asyncHandler(authLocalController.loginUser)
+        asyncHandler(authLocalController.authenticateUser)
     );
     router.get(
         "/auth/local/validate-email/:uuid",
