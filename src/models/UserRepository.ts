@@ -34,10 +34,10 @@ class UserRepository {
             .findOne({ where: { id: id } });
     };
 
-    public readonly updateUser = async (user: User): Promise<void> => {
-        await this.conn
+    public readonly updateUser = async (user: User): Promise<User> => {
+        return this.conn
             .getRepository(User)
-            .update({ id: user.id }, user);
+            .save(user);
     };
 
     public readonly createDefaultCalendarForUser = async (user: User): Promise<void> => {
