@@ -55,6 +55,11 @@ export function createRouter(
         asyncHandler(userController.updateTimezone)
     );
 
+    router.post(
+        "/calendars",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(calendarController.createCalendar)
+    );
     router.get(
         "/calendars",
         asyncHandler(authenticatedOnlyMiddleware),
