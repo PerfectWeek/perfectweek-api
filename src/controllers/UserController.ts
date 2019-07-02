@@ -13,10 +13,14 @@ import { getRequestingUser } from "../middleware/utils/getRequestingUser";
 class UserController {
 
     private readonly userRepository: UserRepository;
+
     private readonly userView: UserView;
 
     constructor(
+        // Repositories
         userRepository: UserRepository,
+
+        // Views
         userView: UserView
     ) {
         this.userRepository = userRepository;

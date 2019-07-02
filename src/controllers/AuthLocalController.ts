@@ -30,12 +30,15 @@ class AuthLocalController {
     private readonly passwordValidator: PasswordValidator;
 
     constructor(
+        // Repositories
         pendingUserRepository: PendingUserRepository,
         userRepository: UserRepository,
 
+        // Services
         jwtService: JwtService,
         passwordService: PasswordService,
 
+        // Validators
         emailValidator: EmailValidator,
         nameValidator: NameValidator,
         passwordValidator: PasswordValidator

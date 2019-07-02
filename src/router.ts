@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import ApiEndpointController from "./controllers/ApiEndpointController";
 import AuthLocalController from "./controllers/AuthLocalController";
+import CalendarController from "./controllers/CalendarController";
 import UserController from "./controllers/UserController";
 
 import { AuthenticatedOnlyMiddleware } from "./middleware/authenticatedOnlyMiddleware";
@@ -12,6 +13,7 @@ export function createRouter(
     // Controllers
     apiEndpointController: ApiEndpointController,
     authLocalController: AuthLocalController,
+    calendarController: CalendarController,
     userController: UserController,
 
     // Middleware
@@ -46,6 +48,12 @@ export function createRouter(
         "/users/me/timezone",
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(userController.updateTimezone)
+    );
+
+    router.get(
+        "/calendars",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(calendarController.getAllCalendarsOfRequestingUser)
     );
 
     return router;

@@ -8,13 +8,16 @@ import Server from "./Server";
 
 import ApiEndpointController from "./controllers/ApiEndpointController";
 import AuthLocalController from "./controllers/AuthLocalController";
+import CalendarController from "./controllers/CalendarController";
 import UserController from "./controllers/UserController";
 
 import JwtService from "./services/JwtService";
 import PasswordService from "./services/PasswordService";
 
+import CalendarView from "./views/CalendarView";
 import UserView from "./views/UserView";
 
+import CalendarRepository from "./models/CalendarRepository";
 import PendingUserRepository from "./models/PendingUserRepository";
 import UserRepository from "./models/UserRepository";
 
@@ -52,6 +55,7 @@ function main(): void {
 
 function createServer(conn: Connection, jwtSecretKey: string): Server {
     // Create Repositories
+    const calendarRepository = new CalendarRepository(conn);
     const pendingUserRepository = new PendingUserRepository(conn);
     const userRepository = new UserRepository(conn);
 
@@ -65,6 +69,7 @@ function createServer(conn: Connection, jwtSecretKey: string): Server {
     const passwordService = new PasswordService();
 
     // Create Views
+    const calendarView = new CalendarView();
     const userView = new UserView();
 
     // Create Controllers
@@ -77,6 +82,10 @@ function createServer(conn: Connection, jwtSecretKey: string): Server {
         emailValidator,
         nameValidator,
         passwordValidator
+    );
+    const calendarController = new CalendarController(
+        calendarRepository,
+        calendarView
     );
     const userController = new UserController(
         userRepository,
@@ -94,6 +103,7 @@ function createServer(conn: Connection, jwtSecretKey: string): Server {
         // Controller
         apiEndpointController,
         authLocalController,
+        calendarController,
         userController,
 
         // Middleware
