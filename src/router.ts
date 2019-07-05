@@ -6,7 +6,7 @@ import CalendarController from "./controllers/CalendarController";
 import UserController from "./controllers/UserController";
 
 import { AuthenticatedOnlyMiddleware } from "./middleware/authenticatedOnlyMiddleware";
-import asyncHandler from "./middleware/utils/asyncHandler";
+import { asyncHandler } from "./middleware/utils/asyncHandler";
 
 
 export function createRouter(
@@ -64,6 +64,16 @@ export function createRouter(
         "/calendars",
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(calendarController.getAllCalendarsOfRequestingUser)
+    );
+    router.get(
+        "/calendars/:calendarId",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(calendarController.getCalendarInfo)
+    );
+    router.get(
+        "/calendars/:calendarId/members",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(calendarController.getCalendarMembers)
     );
 
     return router;

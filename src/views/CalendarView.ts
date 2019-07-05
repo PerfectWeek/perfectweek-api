@@ -4,47 +4,72 @@ import CalendarMember from "../models/entities/CalendarMember";
 
 class CalendarView {
 
-    public readonly formatCalendarWithMembers = (calendar: Calendar): any => {
-        if (!calendar.members) {
-            throw new Error("Missing Calendar.members information");
-        }
-
-        const members = calendar.members.map(calendarMember => {
-            if (!calendarMember.member) {
-                throw new Error("Missing Calendar.members.member information");
-            }
-
-            return {
-                id: calendarMember.userId,
-                name: calendarMember.member.name,
-                role: calendarMember.role,
-                invitation_confirmed: calendarMember.invitationConfirmed
-            };
-        });
-
+    public readonly formatCalendar = (calendar: Calendar): any => {
         return {
             id: calendar.id,
             name: calendar.name,
-            color: calendar.color,
-
-            members: members
+            color: calendar.color
         };
     };
 
-    public readonly formatCalendarRecapWithMembership = (calendarMember: CalendarMember): any => {
-        if (!calendarMember.calendar) {
+    public readonly formatCalendarWithMembership = (
+        calendar: Calendar,
+        membership: CalendarMember
+    ): any => {
+        return {
+            // Calendar
+            ...this.formatCalendar(calendar),
+            // Membership
+            ...this.formatMemberShipStatus(membership)
+        };
+    };
+
+    public readonly formatCalendarMember = (membership: CalendarMember): any => {
+        if (!membership.member) {
+            throw new Error("Missing CalendarMember.member information");
+        }
+
+        return {
+            // Member
+            id: membership.userId,
+            name: membership.member.name,
+            // Membership
+            ...this.formatMemberShipStatus(membership)
+        };
+    };
+
+    public readonly formatCalendarFromMembership = (membership: CalendarMember): any => {
+        if (!membership.calendar) {
             throw new Error("Missing CalendarMember.calendar information");
         }
 
         return {
             // Calendar
-            id: calendarMember.calendar.id,
-            name: calendarMember.calendar.name,
-            color: calendarMember.calendar.color,
-
+            ...this.formatCalendar(membership.calendar),
             // Membership
-            role: calendarMember.role,
-            invitation_confirmed: calendarMember.invitationConfirmed
+            ...this.formatMemberShipStatus(membership)
+        };
+    };
+
+    public readonly formatCalendarWithMembers = (
+        calendar: Calendar
+    ): any => {
+        if (!calendar.members) {
+            throw new Error("Missing Calendar.members information");
+        }
+
+        return {
+            // Calendar
+            ...this.formatCalendar(calendar),
+            // Members
+            members: calendar.members.map(this.formatCalendarMember)
+        };
+    };
+
+    private readonly formatMemberShipStatus = (membership: CalendarMember): any => {
+        return {
+            role: membership.role,
+            invitation_confirmed: membership.invitationConfirmed
         };
     };
 }

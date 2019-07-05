@@ -14,6 +14,12 @@ class CalendarRepository {
         this.conn = conn;
     }
 
+    /**
+     * Saves a new Calendar in the Database
+     *
+     * @param   calendar        The new Calendar to create
+     * @param   membersOptions  A list of members for this new Calendar
+     */
     public readonly createCalendar = async (
         calendar: Calendar,
         membersOptions: MemberOptions[]
@@ -41,6 +47,53 @@ class CalendarRepository {
         return createdCalendar;
     };
 
+    /**
+     * Retrieve the relationship status between a Calendar and a User.
+     *
+     * @param   calendarId
+     * @param   userId
+     */
+    public readonly getCalendarMemberShip = async (
+        calendarId: number,
+        userId: number
+    ): Promise<CalendarMember | undefined> => {
+        return this.conn
+            .getRepository(CalendarMember)
+            .findOne({ where: { calendarId: calendarId, userId: userId } });
+    };
+
+    /**
+     * Retrieve a specific Calendar
+     *
+     * @param   calendarId
+     */
+    public readonly getCalendar = async (calendarId: number): Promise<Calendar | undefined> => {
+        return this.conn
+            .getRepository(Calendar)
+            .findOne({ where: { id: calendarId } });
+    };
+
+    /**
+     * Retrieve a specific Calendar along with all its members
+     *
+     * @param   calendarId
+     */
+    public readonly getCalendarWithMembers = async (calendarId: number): Promise<Calendar | undefined> => {
+        return this.conn
+            .getRepository(Calendar)
+            .createQueryBuilder("c")
+            .innerJoinAndMapMany("c.members", "calendar_members", "cm", "c.id = cm.calendar_id")
+            .innerJoinAndMapOne("cm.member", "users", "u", "cm.user_id = u.id")
+            .where("c.id = :calendarId", { calendarId: calendarId })
+            .getOne();
+    }
+
+    /**
+     * Retrieve all existing Calendar for a User.
+     * Also returns the ones not yet confirmed.
+     *
+     * @param   userId  The id of the corresponding User
+     */
     public readonly getAllCalendarsForUserId = async (userId: number): Promise<CalendarMember[]> => {
         return this.conn
             .getRepository(CalendarMember)
