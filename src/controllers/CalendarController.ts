@@ -13,6 +13,8 @@ import CalendarView from "../views/CalendarView";
 import { trim } from "../utils/string/trim";
 import { getRequestingUser } from "../middleware/utils/getRequestingUser";
 
+import CalendarInvitationStatus, { parseCalendarInvitationStatus } from "./enums/CalendarInvitationStatus";
+
 
 class CalendarController {
 
@@ -167,7 +169,21 @@ class CalendarController {
     public readonly getAllCalendarsOfRequestingUser = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
 
-        const calendarMembers = await this.calendarRepository.getAllCalendarsForUserId(requestingUser.id);
+        // Validate request's parameters
+        const invitationStatusQuery: string = req.query.invitation_status;
+
+        const options: { invitationConfirmed?: boolean } = {};
+        // Process query option: "invitation_status"
+        if (invitationStatusQuery !== undefined) {
+            const invitationStatus = parseCalendarInvitationStatus(invitationStatusQuery);
+            if (invitationStatus === undefined) {
+                throw Boom.badRequest(`Invalid invitation_status: "${invitationStatusQuery}"`);
+            }
+            options.invitationConfirmed = invitationStatus === CalendarInvitationStatus.Confirmed;
+        }
+
+        // Retrieve Calendars
+        const calendarMembers = await this.calendarRepository.getAllCalendarsForUserId(requestingUser.id, options);
 
         res.status(200).json({
             message: "OK",

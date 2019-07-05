@@ -106,13 +106,22 @@ class CalendarRepository {
      *
      * @param   userId  The id of the corresponding User
      */
-    public readonly getAllCalendarsForUserId = async (userId: number): Promise<CalendarMember[]> => {
-        return this.conn
+    public readonly getAllCalendarsForUserId = async (
+        userId: number,
+        options?: { invitationConfirmed?: boolean }
+    ): Promise<CalendarMember[]> => {
+        let query = this.conn
             .getRepository(CalendarMember)
             .createQueryBuilder("cm")
             .innerJoinAndMapOne("cm.calendar", "calendars", "c", "cm.calendar_id = c.id")
-            .where("cm.user_id = :userId", { userId: userId })
-            .getMany();
+            .where("cm.user_id = :userId", { userId: userId });
+
+        if (options
+            && options.invitationConfirmed !== undefined) {
+            query = query.andWhere("cm.invitation_confirmed = :status", { status: options.invitationConfirmed });
+        }
+
+        return query.getMany();
     };
 
     /**
