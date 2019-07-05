@@ -92,6 +92,16 @@ class UserController {
             message: "Timezone updated"
         });
     };
+
+    public readonly deleteUser = async (req: Request, res: Response) => {
+        const requestingUser = getRequestingUser(req);
+
+        await this.userRepository.deleteUser(requestingUser.id);
+
+        res.status(200).json({
+            message: "User deleted"
+        });
+    };
 }
 
 

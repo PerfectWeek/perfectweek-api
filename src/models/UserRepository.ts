@@ -3,7 +3,9 @@ import { Connection } from "typeorm";
 import Calendar from "./entities/Calendar";
 import CalendarMember from "./entities/CalendarMember";
 import CalendarMemberRole from "../core/enums/CalendarMemberRole";
+import EventAttendee from "./entities/EventAttendee";
 import User from "./entities/User";
+import UserFriendship from "./entities/UserFriendship";
 
 
 class UserRepository {
@@ -54,6 +56,20 @@ class UserRepository {
                 role: CalendarMemberRole.Admin,
                 invitationConfirmed: true
             }));
+    };
+
+    public readonly deleteUser = async (userId: number): Promise<void> => {
+        await this.conn.transaction(async entityManager => {
+            // Delete Friendships
+            await entityManager.delete(UserFriendship, { requestingId: userId });
+            await entityManager.delete(UserFriendship, { requestedId: userId });
+            // Delete Event relations
+            await entityManager.delete(EventAttendee, { userId: userId });
+            // Delete Calendar relations
+            await entityManager.delete(CalendarMember, { userId: userId });
+            // Delete User
+            await entityManager.delete(User, { id: userId });
+        });
     };
 }
 

@@ -49,6 +49,11 @@ export function createRouter(
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(userController.updateMyInfo)
     );
+    router.delete(
+        "/users/me",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(userController.deleteUser)
+    );
     router.put(
         "/users/me/timezone",
         asyncHandler(authenticatedOnlyMiddleware),
