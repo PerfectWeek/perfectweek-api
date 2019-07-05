@@ -174,6 +174,36 @@ class CalendarController {
             calendars: calendarMembers.map(this.calendarView.formatCalendarFromMembership)
         });
     };
+
+    public readonly deleteCalendar = async (req: Request, res: Response) => {
+        const requestingUser = getRequestingUser(req);
+
+        // Validate request's parameters
+        const calendarId: number = parseInt(req.params.calendarId);
+        if (!calendarId) {
+            throw Boom.notFound(`Calendar id "${req.params.calendarId}" is invalid`);
+        }
+
+        // Make sure User can access Calendar
+        const calendarMembership = await this.calendarRepository.getCalendarMemberShip(calendarId, requestingUser.id);
+        if (!calendarMembership
+            || !this.calendarPolicy.userCanDeleteCalendar(calendarMembership)) {
+            throw Boom.unauthorized("You cannot access this Calendar");
+        }
+
+        // Retrieve Calendar
+        const calendar = await this.calendarRepository.getCalendar(calendarId);
+        if (!calendar) {
+            throw Boom.notFound("Calendar does not exists");
+        }
+
+        // Delete Calendar
+        await this.calendarRepository.deleteCalendar(calendar.id);
+
+        res.status(200).json({
+            message: "Calendar deleted"
+        });
+    };
 }
 
 

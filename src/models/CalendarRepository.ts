@@ -1,6 +1,7 @@
 import { Connection } from "typeorm";
 
 import Calendar from "./entities/Calendar";
+import CalendarEntry from "./entities/CalendarEntry";
 import CalendarMember from "./entities/CalendarMember";
 import CalendarMemberRole from "../core/enums/CalendarMemberRole";
 import User from "../models/entities/User";
@@ -112,6 +113,22 @@ class CalendarRepository {
             .innerJoinAndMapOne("cm.calendar", "calendars", "c", "cm.calendar_id = c.id")
             .where("cm.user_id = :userId", { userId: userId })
             .getMany();
+    };
+
+    /**
+     * Remove the specified Calendar, taking care of its dependencies
+     *
+     * @param   calendarId
+     */
+    public readonly deleteCalendar = async (calendarId: number): Promise<void> => {
+        await this.conn.transaction(async entityManager => {
+            // Delete all User membership
+            await entityManager.delete(CalendarMember, { calendarId: calendarId });
+            // Delete all Event relations
+            await entityManager.delete(CalendarEntry, { calendarId: calendarId });
+            // Delete Calendar
+            await entityManager.delete(Calendar, { id: calendarId });
+        });
     };
 }
 

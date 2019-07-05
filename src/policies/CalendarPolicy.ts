@@ -21,6 +21,11 @@ class CalendarPolicy {
                 || calendarMembership.role === CalendarMemberRole.Actor
             );
     };
+
+    public readonly userCanDeleteCalendar = (calendarMembership: CalendarMember): boolean => {
+        return calendarMembership.invitationConfirmed
+            && calendarMembership.role === CalendarMemberRole.Admin;
+    };
 }
 
 
