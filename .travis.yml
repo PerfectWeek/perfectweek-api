@@ -1,0 +1,16 @@
+language: node_js
+
+node_js:
+  - "11"
+
+install:
+  - yarn install
+
+services:
+  - postgresql
+
+before_script:
+  - yarn run typeorm migration:run
+
+script:
+  - yarn run test --coverage
