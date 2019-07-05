@@ -14,6 +14,8 @@ import UserController from "./controllers/UserController";
 import JwtService from "./services/JwtService";
 import PasswordService from "./services/PasswordService";
 
+import CalendarPolicy from "./policies/CalendarPolicy";
+
 import CalendarView from "./views/CalendarView";
 import UserView from "./views/UserView";
 
@@ -59,6 +61,9 @@ function createServer(conn: Connection, jwtSecretKey: string): Server {
     const pendingUserRepository = new PendingUserRepository(conn);
     const userRepository = new UserRepository(conn);
 
+    // Create Policies
+    const calendarPolicy = new CalendarPolicy();
+
     // Create Validators
     const emailValidator = new EmailValidator();
     const nameValidator = new NameValidator();
@@ -85,6 +90,7 @@ function createServer(conn: Connection, jwtSecretKey: string): Server {
     );
     const calendarController = new CalendarController(
         calendarRepository,
+        calendarPolicy,
         calendarView
     );
     const userController = new UserController(
