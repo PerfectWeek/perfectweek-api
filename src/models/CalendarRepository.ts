@@ -15,7 +15,7 @@ class CalendarRepository {
     }
 
     /**
-     * Saves a new Calendar in the Database
+     * Save a new Calendar in the Database
      *
      * @param   calendar        The new Calendar to create
      * @param   membersOptions  A list of members for this new Calendar
@@ -48,6 +48,17 @@ class CalendarRepository {
     };
 
     /**
+     * Retrieve a specific Calendar
+     *
+     * @param   calendarId
+     */
+    public readonly getCalendar = async (calendarId: number): Promise<Calendar | undefined> => {
+        return this.conn
+            .getRepository(Calendar)
+            .findOne({ where: { id: calendarId } });
+    };
+
+    /**
      * Retrieve the relationship status between a Calendar and a User.
      *
      * @param   calendarId
@@ -63,14 +74,14 @@ class CalendarRepository {
     };
 
     /**
-     * Retrieve a specific Calendar
+     * Update Calendar information
      *
-     * @param   calendarId
+     * @param   calendar
      */
-    public readonly getCalendar = async (calendarId: number): Promise<Calendar | undefined> => {
+    public readonly updateCalendar = async (calendar: Calendar): Promise<Calendar> => {
         return this.conn
             .getRepository(Calendar)
-            .findOne({ where: { id: calendarId } });
+            .save(calendar);
     };
 
     /**

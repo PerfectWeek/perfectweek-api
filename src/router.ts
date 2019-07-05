@@ -70,6 +70,11 @@ export function createRouter(
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(calendarController.getCalendarInfo)
     );
+    router.put(
+        "/calendars/:calendarId",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(calendarController.editCalendarInfo)
+    );
     router.get(
         "/calendars/:calendarId/members",
         asyncHandler(authenticatedOnlyMiddleware),

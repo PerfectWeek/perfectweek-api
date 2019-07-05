@@ -67,17 +67,6 @@ class CalendarController {
         });
     };
 
-    public readonly getAllCalendarsOfRequestingUser = async (req: Request, res: Response) => {
-        const requestingUser = getRequestingUser(req);
-
-        const calendarMembers = await this.calendarRepository.getAllCalendarsForUserId(requestingUser.id);
-
-        res.status(200).json({
-            message: "OK",
-            calendars: calendarMembers.map(this.calendarView.formatCalendarFromMembership)
-        });
-    };
-
     public readonly getCalendarInfo = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
 
@@ -103,6 +92,44 @@ class CalendarController {
         res.status(200).json({
             message: "OK",
             calendar: this.calendarView.formatCalendarWithMembership(calendar, calendarMembership)
+        });
+    };
+
+    public readonly editCalendarInfo = async (req: Request, res: Response) => {
+        const requestingUser = getRequestingUser(req);
+
+        // Validate request's parameters
+        const calendarId: number = parseInt(req.params.calendarId);
+        const calendarNewName = trim(req.body.name);
+        const calendarNewColor = trim(req.body.color);
+        if (!calendarId) {
+            throw Boom.notFound(`Calendar id "${req.params.calendarId}" is invalid`);
+        }
+        if (!calendarNewName || !calendarNewColor) {
+            throw Boom.badRequest("Missing fields for Calendar");
+        }
+
+        // Make sure User can edit Calendar
+        const calendarMembership = await this.calendarRepository.getCalendarMemberShip(calendarId, requestingUser.id);
+        if (!calendarMembership
+            || !this.calendarPolicy.userCanEditCalendarMetadata(calendarMembership)) {
+            throw Boom.unauthorized("You cannot access this Calendar");
+        }
+
+        // Retrieve Calendar
+        const calendar = await this.calendarRepository.getCalendar(calendarId);
+        if (!calendar) {
+            throw Boom.notFound("Calendar does not exists");
+        }
+
+        // Edit Calendar
+        calendar.color = calendarNewColor;
+        calendar.name = calendarNewName;
+        const updatedCalendar = await this.calendarRepository.updateCalendar(calendar);
+
+        res.status(200).json({
+            message: "OK",
+            calendar: this.calendarView.formatCalendarWithMembership(updatedCalendar, calendarMembership)
         });
     };
 
@@ -134,6 +161,17 @@ class CalendarController {
         res.status(200).json({
             message: "OK",
             members: calendar.members.map(this.calendarView.formatCalendarMember)
+        });
+    };
+
+    public readonly getAllCalendarsOfRequestingUser = async (req: Request, res: Response) => {
+        const requestingUser = getRequestingUser(req);
+
+        const calendarMembers = await this.calendarRepository.getAllCalendarsForUserId(requestingUser.id);
+
+        res.status(200).json({
+            message: "OK",
+            calendars: calendarMembers.map(this.calendarView.formatCalendarFromMembership)
         });
     };
 }
