@@ -4,7 +4,7 @@ enum CalendarInvitationStatus {
 }
 
 
-export function parseCalendarInvitationStatus(status: string): CalendarInvitationStatus | undefined {
+export function calendarInvitationStatusFromString(status: string): CalendarInvitationStatus | undefined {
     switch (status) {
         case CalendarInvitationStatus.Confirmed: return CalendarInvitationStatus.Confirmed;
         case CalendarInvitationStatus.Pending: return CalendarInvitationStatus.Pending;

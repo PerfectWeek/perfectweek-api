@@ -4,4 +4,13 @@ enum EventVisibility {
 };
 
 
+export function eventVisibilityFromString(visibility: string): EventVisibility | undefined {
+    switch (visibility) {
+        case EventVisibility.Private: return EventVisibility.Private;
+        case EventVisibility.Public: return EventVisibility.Public;
+        default: return undefined;
+    }
+}
+
+
 export default EventVisibility;
