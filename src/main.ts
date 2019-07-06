@@ -25,10 +25,13 @@ import PasswordValidator from "./validators/PasswordValidator";
 import * as AuthenticatedOnlyMiddleware from "./middleware/authenticatedOnlyMiddleware";
 
 
-const API_PORT: number = 3000;
-
 function main(): void {
     const dbConfig = DbConfig.load("../ormconfig.js");
+
+    const apiPort = parseInt(process.env.PORT || "");
+    if (!apiPort) {
+        throw new Error('Missing environment variable "PORT"');
+    }
 
     const jwtSecretKey = process.env.JWT_SECRET_KEY;
     if (!jwtSecretKey) {
@@ -41,7 +44,7 @@ function main(): void {
 
             const server = createServer(conn, jwtSecretKey);
 
-            server.start(API_PORT);
+            server.start(apiPort);
         });
 }
 

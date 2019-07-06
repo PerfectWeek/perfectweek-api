@@ -17,6 +17,7 @@ services:
     depends_on:
       - db
     environment:
+      PORT: 3000
       DB_NAME: postgres
       DB_USER: postgres
       DB_HOST: db

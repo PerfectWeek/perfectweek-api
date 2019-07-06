@@ -12,6 +12,10 @@
         "test": "jest",
         "typeorm": "ts-node ./node_modules/typeorm/cli.js"
     },
+    "engines": {
+        "node": "11.15.0",
+        "yarn": "1.15.2"
+    },
     "dependencies": {
         "@hapi/boom": "^7.4.2",
         "@types/bcrypt": "^3.0.0",
