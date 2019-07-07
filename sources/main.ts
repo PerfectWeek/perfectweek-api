@@ -99,7 +99,9 @@ function createServer(conn: Connection, jwtSecretKey: string): Server {
         calendarView
     );
     const eventController = new EventController(
+        calendarRepository,
         eventRepository,
+        calendarPolicy,
         eventView
     );
     const userController = new UserController(

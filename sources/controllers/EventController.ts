@@ -7,8 +7,12 @@ import { eventVisibilityFromString } from "../core/enums/EventVisibility";
 
 import EventView from "../views/EventView";
 
+import CalendarPolicy from "../policies/CalendarPolicy";
+
+import Calendar from "../models/entities/Calendar";
 import Event from "../models/entities/Event";
 
+import CalendarRepository from "../models/CalendarRepository";
 import EventRepository from "../models/EventRepository";
 
 import { trim } from "../utils/string/trim";
@@ -17,15 +21,22 @@ import { getRequestingUser } from "../middleware/utils/getRequestingUser";
 
 class EventController {
 
+    private readonly calendarRepository: CalendarRepository;
     private readonly eventRepository: EventRepository;
+
+    private readonly calendarPolicy: CalendarPolicy;
 
     private readonly eventView: EventView;
 
     constructor(
+        calendarRepository: CalendarRepository,
         eventRepository: EventRepository,
+        calendarPolicy: CalendarPolicy,
         eventView: EventView
     ) {
+        this.calendarRepository = calendarRepository;
         this.eventRepository = eventRepository;
+        this.calendarPolicy = calendarPolicy;
         this.eventView = eventView;
     }
 
@@ -40,8 +51,12 @@ class EventController {
         const eventVisibility = req.body.visibility;
         const eventDescription = req.body.description;
         const eventLocation = req.body.location;
-        if (!eventName || !eventStart || !eventEnd
-            || !eventType || !eventVisibility) {
+        if (!eventName
+            || !eventStart
+            || !eventEnd
+            || !eventType
+            || !eventVisibility
+        ) {
             throw Boom.badRequest("Missing fields for Event");
         }
 
@@ -55,6 +70,32 @@ class EventController {
         const visibility = eventVisibilityFromString(eventVisibility);
         if (!visibility) {
             throw Boom.badRequest("Invalid visibility");
+        }
+
+        // Validate optionnal parameter "calendar_id"
+        const calendarId = req.body.calendar_id !== undefined ? parseInt(req.body.calendar_id, 10) : undefined;
+        if (calendarId !== undefined && isNaN(calendarId)) {
+            throw Boom.badRequest("Invalid calendar_id");
+        }
+
+        // If a Calendar has been specified, make sure the User can access it
+        let calendar: Calendar | undefined = undefined;
+        if (calendarId) {
+            // Ensure the User is a member of the Calendar and has enough rights
+            const calendarMembership = await this.calendarRepository.getCalendarMemberShip(
+                calendarId,
+                requestingUser.id
+            );
+            if (!calendarMembership
+                || !this.calendarPolicy.userCanAddEventToCalendar(calendarMembership)) {
+                throw Boom.unauthorized("You do not have access to this Calendar");
+            }
+
+            // Retrieve the corresponding Calendar
+            calendar = await this.calendarRepository.getCalendar(calendarId);
+            if (!calendar) {
+                throw Boom.notFound("Calendar not found");
+            }
         }
 
         // Create and save new Event
@@ -72,12 +113,15 @@ class EventController {
                 user: requestingUser,
                 role: EventAttendeeRole.Admin,
                 status: EventAttendeeStatus.Going
-            }]
+            }],
+            calendar
+                ? { calendar: calendar, color: calendar.color }
+                : undefined
         );
 
         res.status(201).json({
             message: "Event created",
-            event: this.eventView.formatEventWithAttendees(createdEvent)
+            event: this.eventView.formatEventWithAttendeesAndCalendars(createdEvent)
         });
     };
 }
