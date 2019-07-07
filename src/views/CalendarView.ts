@@ -20,7 +20,7 @@ class CalendarView {
             // Calendar
             ...this.formatCalendar(calendar),
             // Membership
-            ...this.formatMemberShipStatus(membership)
+            ...CalendarView.formatMemberShipStatus(membership)
         };
     };
 
@@ -34,7 +34,7 @@ class CalendarView {
             id: membership.userId,
             name: membership.member.name,
             // Membership
-            ...this.formatMemberShipStatus(membership)
+            ...CalendarView.formatMemberShipStatus(membership)
         };
     };
 
@@ -47,13 +47,11 @@ class CalendarView {
             // Calendar
             ...this.formatCalendar(membership.calendar),
             // Membership
-            ...this.formatMemberShipStatus(membership)
+            ...CalendarView.formatMemberShipStatus(membership)
         };
     };
 
-    public readonly formatCalendarWithMembers = (
-        calendar: Calendar
-    ): any => {
+    public readonly formatCalendarWithMembers = (calendar: Calendar): any => {
         if (!calendar.members) {
             throw new Error("Missing Calendar.members information");
         }
@@ -66,7 +64,7 @@ class CalendarView {
         };
     };
 
-    private readonly formatMemberShipStatus = (membership: CalendarMember): any => {
+    private static formatMemberShipStatus(membership: CalendarMember): any {
         return {
             role: membership.role,
             invitation_confirmed: membership.invitationConfirmed

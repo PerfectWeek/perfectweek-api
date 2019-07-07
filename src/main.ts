@@ -6,26 +6,29 @@ import * as Router from "./router";
 
 import Server from "./Server";
 
-import ApiEndpointController from "./controllers/ApiEndpointController";
-import AuthLocalController from "./controllers/AuthLocalController";
-import CalendarController from "./controllers/CalendarController";
-import UserController from "./controllers/UserController";
+import CalendarView from "./views/CalendarView";
+import EventView from "./views/EventView";
+import UserView from "./views/UserView";
+
+import CalendarRepository from "./models/CalendarRepository";
+import EventRepository from "./models/EventRepository";
+import PendingUserRepository from "./models/PendingUserRepository";
+import UserRepository from "./models/UserRepository";
 
 import JwtService from "./services/JwtService";
 import PasswordService from "./services/PasswordService";
 
-import CalendarPolicy from "./policies/CalendarPolicy";
-
-import CalendarView from "./views/CalendarView";
-import UserView from "./views/UserView";
-
-import CalendarRepository from "./models/CalendarRepository";
-import PendingUserRepository from "./models/PendingUserRepository";
-import UserRepository from "./models/UserRepository";
-
 import EmailValidator from "./validators/EmailValidator";
 import NameValidator from "./validators/NameValidator";
 import PasswordValidator from "./validators/PasswordValidator";
+
+import CalendarPolicy from "./policies/CalendarPolicy";
+
+import ApiEndpointController from "./controllers/ApiEndpointController";
+import AuthLocalController from "./controllers/AuthLocalController";
+import CalendarController from "./controllers/CalendarController";
+import EventController from "./controllers/EventController";
+import UserController from "./controllers/UserController";
 
 import * as AuthenticatedOnlyMiddleware from "./middleware/authenticatedOnlyMiddleware";
 
@@ -58,6 +61,7 @@ function main(): void {
 function createServer(conn: Connection, jwtSecretKey: string): Server {
     // Create Repositories
     const calendarRepository = new CalendarRepository(conn);
+    const eventRepository = new EventRepository(conn);
     const pendingUserRepository = new PendingUserRepository(conn);
     const userRepository = new UserRepository(conn);
 
@@ -75,6 +79,7 @@ function createServer(conn: Connection, jwtSecretKey: string): Server {
 
     // Create Views
     const calendarView = new CalendarView();
+    const eventView = new EventView();
     const userView = new UserView();
 
     // Create Controllers
@@ -92,6 +97,10 @@ function createServer(conn: Connection, jwtSecretKey: string): Server {
         calendarRepository,
         calendarPolicy,
         calendarView
+    );
+    const eventController = new EventController(
+        eventRepository,
+        eventView
     );
     const userController = new UserController(
         userRepository,
@@ -112,6 +121,7 @@ function createServer(conn: Connection, jwtSecretKey: string): Server {
         apiEndpointController,
         authLocalController,
         calendarController,
+        eventController,
         userController,
 
         // Middleware

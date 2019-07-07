@@ -43,7 +43,7 @@ class CalendarRepository {
 
         // Process createdMembers so that its "member" attribute is correct
         const users = new Map<number, User>(membersOptions.map(mo => [mo.user.id, mo.user]));
-        createdCalendar.members = createdMembers.map(cm => putMembersInCalendarMember(cm, users));
+        createdCalendar.members = createdMembers.map(cm => putMemberInCalendarMember(cm, users));
 
         return createdCalendar;
     };
@@ -151,7 +151,7 @@ type MemberOptions = {
 //
 // Helpers
 //
-function putMembersInCalendarMember(
+function putMemberInCalendarMember(
     calendarMember: CalendarMember,
     members: Map<number, User>
 ): CalendarMember {

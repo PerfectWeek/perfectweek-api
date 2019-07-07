@@ -7,6 +7,7 @@ import UserController from "./controllers/UserController";
 
 import { AuthenticatedOnlyMiddleware } from "./middleware/authenticatedOnlyMiddleware";
 import { asyncHandler } from "./middleware/utils/asyncHandler";
+import EventController from "./controllers/EventController";
 
 
 export function createRouter(
@@ -14,6 +15,7 @@ export function createRouter(
     apiEndpointController: ApiEndpointController,
     authLocalController: AuthLocalController,
     calendarController: CalendarController,
+    eventController: EventController,
     userController: UserController,
 
     // Middleware
@@ -89,6 +91,12 @@ export function createRouter(
         "/calendars/:calendarId/members",
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(calendarController.getCalendarMembers)
+    );
+
+    router.post(
+        "/events",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(eventController.createEvent)
     );
 
     return router;

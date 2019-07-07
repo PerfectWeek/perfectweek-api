@@ -13,7 +13,7 @@ import CalendarView from "../views/CalendarView";
 import { trim } from "../utils/string/trim";
 import { getRequestingUser } from "../middleware/utils/getRequestingUser";
 
-import CalendarInvitationStatus, { parseCalendarInvitationStatus } from "./enums/CalendarInvitationStatus";
+import CalendarInvitationStatus, { calendarInvitationStatusFromString } from "./enums/CalendarInvitationStatus";
 
 
 class CalendarController {
@@ -175,7 +175,7 @@ class CalendarController {
         const options: { invitationConfirmed?: boolean } = {};
         // Process query option: "invitation_status"
         if (invitationStatusQuery !== undefined) {
-            const invitationStatus = parseCalendarInvitationStatus(invitationStatusQuery);
+            const invitationStatus = calendarInvitationStatusFromString(invitationStatusQuery);
             if (invitationStatus === undefined) {
                 throw Boom.badRequest(`Invalid invitation_status: "${invitationStatusQuery}"`);
             }
