@@ -87,11 +87,6 @@ export function createRouter(
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(calendarController.deleteCalendar)
     );
-    router.get(
-        "/calendars/:calendarId/members",
-        asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(calendarController.getCalendarMembers)
-    );
 
     router.post(
         "/events",

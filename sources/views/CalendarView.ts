@@ -51,14 +51,17 @@ class CalendarView {
         };
     };
 
-    public readonly formatCalendarWithMembers = (calendar: Calendar): any => {
+    public readonly formatCalendarWithMembershipAndMembers = (
+        calendar: Calendar,
+        membership: CalendarMember
+    ): any => {
         if (!calendar.members) {
             throw new Error("Missing Calendar.members information");
         }
 
         return {
             // Calendar
-            ...this.formatCalendar(calendar),
+            ...this.formatCalendarWithMembership(calendar, membership),
             // Members
             members: calendar.members.map(this.formatCalendarMember)
         };
