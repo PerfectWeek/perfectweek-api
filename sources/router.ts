@@ -3,11 +3,11 @@ import { Router } from "express";
 import ApiEndpointController from "./controllers/ApiEndpointController";
 import AuthLocalController from "./controllers/AuthLocalController";
 import CalendarController from "./controllers/CalendarController";
+import EventController from "./controllers/EventController";
 import UserController from "./controllers/UserController";
 
 import { AuthenticatedOnlyMiddleware } from "./middleware/authenticatedOnlyMiddleware";
 import { asyncHandler } from "./middleware/utils/asyncHandler";
-import EventController from "./controllers/EventController";
 
 
 export function createRouter(

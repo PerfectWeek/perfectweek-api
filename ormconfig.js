@@ -14,7 +14,12 @@ if (DATABASE_URL) {
     const DB_USER = process.env.DB_USER;
     const DB_PASSWORD = process.env.DB_PASSWORD;
 
-    if (DB_HOST && DB_PORT && DB_NAME && DB_USER && DB_PASSWORD) {
+    if (DB_HOST !== undefined &&
+        DB_PORT !== undefined &&
+        DB_NAME !== undefined &&
+        DB_USER !== undefined &&
+        DB_PASSWORD !== undefined
+    ) {
         connectionOptions.host = DB_HOST;
         connectionOptions.port = DB_PORT;
         connectionOptions.database = DB_NAME;
@@ -48,12 +53,12 @@ module.exports = {
     logging: false,
 
     entities: [
-        "src/models/entities/*.ts"
+        "sources/models/entities/*.ts"
     ],
     migrations: [
-        "src/models/migrations/*.ts"
+        "sources/models/migrations/*.ts"
     ],
     cli: {
-        migrationsDir: "src/models/migrations"
+        migrationsDir: "sources/models/migrations"
     }
 };

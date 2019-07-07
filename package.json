@@ -1,20 +1,19 @@
 {
     "name": "api",
     "version": "0.1.0",
-    "main": "src/main.ts",
+    "main": "sources/main.ts",
     "repository": "git@github.com:benard-g/api.git",
     "author": "Guillaume Benard <guillaume.benard@epitech.eu>",
     "license": "MIT",
     "private": true,
     "scripts": {
-        "start": "ts-node src/main.ts",
+        "start": "ts-node sources/main.ts",
         "dev": "nodemon -L",
         "test": "jest",
         "typeorm": "ts-node ./node_modules/typeorm/cli.js"
     },
     "engines": {
-        "node": "11.15.0",
-        "yarn": "1.15.2"
+        "node": "11.15.0"
     },
     "dependencies": {
         "@hapi/boom": "^7.4.2",

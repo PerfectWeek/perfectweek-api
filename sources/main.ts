@@ -132,7 +132,7 @@ function createServer(conn: Connection, jwtSecretKey: string): Server {
 }
 
 
-// Run only if executed directly (e.g: `ts-node src/main.ts`)
+// Run only if executed directly (e.g: `ts-node sources/main.ts`)
 if (require.main === module) {
     main();
 }
