@@ -36,7 +36,7 @@ import * as AuthenticatedOnlyMiddleware from "./middleware/authenticatedOnlyMidd
 function main(): void {
     const dbConfig = DbConfig.load("../ormconfig.js");
 
-    const apiPort = parseInt(process.env.PORT || "");
+    const apiPort = parseInt(process.env.PORT || "", 10);
     if (!apiPort) {
         throw new Error('Missing environment variable "PORT"');
     }

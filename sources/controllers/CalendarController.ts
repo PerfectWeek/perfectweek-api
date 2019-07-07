@@ -79,7 +79,7 @@ class CalendarController {
         const requestingUser = getRequestingUser(req);
 
         // Validate request's parameters
-        const calendarId: number = parseInt(req.params.calendarId);
+        const calendarId: number = parseInt(req.params.calendarId, 10);
         if (!calendarId) {
             throw Boom.notFound(`Calendar id "${req.params.calendarId}" is invalid`);
         }
@@ -107,7 +107,7 @@ class CalendarController {
         const requestingUser = getRequestingUser(req);
 
         // Validate request's parameters
-        const calendarId: number = parseInt(req.params.calendarId);
+        const calendarId: number = parseInt(req.params.calendarId, 10);
         const calendarNewName = trim(req.body.name);
         const calendarNewColor = trim(req.body.color);
         if (!calendarId) {
@@ -170,7 +170,7 @@ class CalendarController {
         const requestingUser = getRequestingUser(req);
 
         // Validate request's parameters
-        const calendarId: number = parseInt(req.params.calendarId);
+        const calendarId: number = parseInt(req.params.calendarId, 10);
         if (!calendarId) {
             throw Boom.notFound(`Calendar id "${req.params.calendarId}" is invalid`);
         }
