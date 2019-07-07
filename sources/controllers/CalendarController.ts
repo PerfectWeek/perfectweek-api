@@ -63,9 +63,15 @@ class CalendarController {
             }]
         );
 
+        // Make sure the requesting User has been added to the Calendar
+        const calendarMembership = await this.calendarRepository.getCalendarMemberShip(calendar.id, requestingUser.id);
+        if (!calendarMembership) {
+            throw new Error("The requesting User should be a member of the calendar");
+        }
+
         res.status(201).json({
             message: "Calendar created",
-            calendar: this.calendarView.formatCalendarWithMembers(calendar)
+            calendar: this.calendarView.formatCalendarWithMembershipAndMembers(calendar, calendarMembership)
         });
     };
 
@@ -86,14 +92,14 @@ class CalendarController {
         }
 
         // Retrieve Calendar
-        const calendar = await this.calendarRepository.getCalendar(calendarId);
+        const calendar = await this.calendarRepository.getCalendarWithMembers(calendarId);
         if (!calendar) {
             throw Boom.notFound("Calendar does not exists");
         }
 
         res.status(200).json({
             message: "OK",
-            calendar: this.calendarView.formatCalendarWithMembership(calendar, calendarMembership)
+            calendar: this.calendarView.formatCalendarWithMembershipAndMembers(calendar, calendarMembership)
         });
     };
 
@@ -132,37 +138,6 @@ class CalendarController {
         res.status(200).json({
             message: "OK",
             calendar: this.calendarView.formatCalendarWithMembership(updatedCalendar, calendarMembership)
-        });
-    };
-
-    public readonly getCalendarMembers = async (req: Request, res: Response) => {
-        const requestingUser = getRequestingUser(req);
-
-        // Validate request's parameters
-        const calendarId: number = parseInt(req.params.calendarId);
-        if (!calendarId) {
-            throw Boom.notFound(`Calendar id "${req.params.calendarId}" is invalid`);
-        }
-
-        // Make sure User can access Calendar
-        const calendarMembership = await this.calendarRepository.getCalendarMemberShip(calendarId, requestingUser.id);
-        if (!calendarMembership
-            || !this.calendarPolicy.userCanReadCalendar(calendarMembership)) {
-            throw Boom.unauthorized("You cannot access this Calendar");
-        }
-
-        // Retrieve Calendar
-        const calendar = await this.calendarRepository.getCalendarWithMembers(calendarId);
-        if (!calendar) {
-            throw Boom.notFound("Calendar does not exists");
-        }
-        if (!calendar.members) {
-            throw new Error("Calendar.members is not set");
-        }
-
-        res.status(200).json({
-            message: "OK",
-            members: calendar.members.map(this.calendarView.formatCalendarMember)
         });
     };
 
