@@ -1,3 +1,4 @@
+import CalendarEntry from "../models/entities/CalendarEntry";
 import Event from "../models/entities/Event";
 import EventAttendee from "../models/entities/EventAttendee";
 
@@ -56,12 +57,37 @@ class EventView {
         }
     };
 
+    public readonly formatEventWithAttendeesAndCalendars = (event: Event): any => {
+        if (!event.owningCalendars) {
+            throw new Error("Missing Event.owningCalendars information");
+        }
+
+        return {
+            // Event & Attendees
+            ...this.formatEventWithAttendees(event),
+            // Calendars
+            owning_calendars: event.owningCalendars.map(EventView.formatOwningCalendar)
+        }
+    };
+
     private static formatAttendeeStatus(status: EventAttendee): any {
         return {
             role: status.role,
             status: status.status
         };
     };
+
+    private static formatOwningCalendar(calendarEntry: CalendarEntry): any {
+        if (!calendarEntry.calendar) {
+            throw new Error("Missing CalendarEntry.calendar information");
+        }
+
+        return {
+            id: calendarEntry.calendar.id,
+            name: calendarEntry.calendar.name,
+            color: calendarEntry.calendar.color
+        };
+    }
 }
 
 

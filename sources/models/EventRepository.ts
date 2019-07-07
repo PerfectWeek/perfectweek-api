@@ -3,6 +3,8 @@ import { Connection } from "typeorm";
 import EventAttendeeRole from "../core/enums/EventAttendeeRole";
 import EventAttendeeStatus from "../core/enums/EventAttendeeStatus";
 
+import Calendar from "./entities/Calendar";
+import CalendarEntry from "./entities/CalendarEntry";
 import Event from "./entities/Event";
 import EventAttendee from "./entities/EventAttendee";
 import User from "./entities/User";
@@ -18,7 +20,8 @@ class EventRepository {
 
     public readonly createEvent = async (
         event: Event,
-        attendeesOptions: AttendeeOptions[]
+        attendeesOptions: AttendeeOptions[],
+        calendarOptions?: CalendarOptions
     ): Promise<Event> => {
         // Created Event
         const createdEvent = await this.conn
@@ -40,6 +43,23 @@ class EventRepository {
         const users = new Map<number, User>(attendeesOptions.map(mo => [mo.user.id, mo.user]));
         createdEvent.attendees = createdAttendees.map(ea => putAttendeeInEventAttendee(ea, users));
 
+        if (calendarOptions) {
+            const calendarEntry = await this.conn
+                .getRepository(CalendarEntry)
+                .save(new CalendarEntry({
+                    calendarId: calendarOptions.calendar.id,
+                    eventId: event.id,
+                    color: calendarOptions.color
+                }));
+            calendarEntry.calendar = calendarOptions.calendar;
+            calendarEntry.event = createdEvent;
+
+            createdEvent.owningCalendars = [calendarEntry];
+        }
+        else {
+            createdEvent.owningCalendars = [];
+        }
+
         return createdEvent;
     };
 };
@@ -48,6 +68,11 @@ type AttendeeOptions = {
     user: User,
     role: EventAttendeeRole,
     status: EventAttendeeStatus
+};
+
+type CalendarOptions = {
+    calendar: Calendar,
+    color: string
 };
 
 
