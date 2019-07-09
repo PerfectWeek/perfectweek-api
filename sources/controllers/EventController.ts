@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import Boom from "@hapi/boom";
 import { isUndefined } from "util";
 
-import CalendarMemberRole from "../core/enums/CalendarMemberRole";
 import EventAttendeeRole from "../core/enums/EventAttendeeRole";
 import EventAttendeeStatus, { eventAttendeeStatusFromString } from "../core/enums/EventAttendeeStatus";
 import { eventVisibilityFromString } from "../core/enums/EventVisibility";
@@ -21,6 +20,8 @@ import DateService from "../services/DateService";
 
 import { trim } from "../utils/string/trim";
 import { getRequestingUser } from "../middleware/utils/getRequestingUser";
+
+import { calendarMemberRoleToEventAttendeeRole } from "./utils/calendarMemberRoleToEventAttendeeRole";
 
 
 class EventController {
@@ -141,7 +142,7 @@ class EventController {
                 role: calendarMemberRoleToEventAttendeeRole(cm.role),
                 status: EventAttendeeStatus.Invited
             }));
-            const eventAttendees = await this.eventRepository.inviteUsersToEvent(createdEvent, attendees);
+            const eventAttendees = await this.eventRepository.addUsersToEvent(createdEvent, attendees);
 
             // Update Event object attendees list
             createdEvent.attendees = createdEvent.attendees!.concat(eventAttendees);
@@ -229,18 +230,6 @@ class EventController {
             events: eventStatuses.map(this.eventView.formatEventWithStatusAndCalendars)
         });
     };
-}
-
-
-//
-// Helpers
-//
-function calendarMemberRoleToEventAttendeeRole(calendarMemberRole: CalendarMemberRole): EventAttendeeRole {
-    switch (calendarMemberRole) {
-        case CalendarMemberRole.Admin: return EventAttendeeRole.Admin;
-        case CalendarMemberRole.Actor: return EventAttendeeRole.Actor;
-        case CalendarMemberRole.Spectator: return EventAttendeeRole.Spectator;
-    }
 }
 
 

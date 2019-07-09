@@ -4,6 +4,7 @@ import Calendar from "./entities/Calendar";
 import CalendarEntry from "./entities/CalendarEntry";
 import CalendarMember from "./entities/CalendarMember";
 import CalendarMemberRole from "../core/enums/CalendarMemberRole";
+import Event from "./entities/Event";
 import User from "../models/entities/User";
 
 
@@ -125,6 +126,46 @@ class CalendarRepository {
     };
 
     /**
+     * Add an Event to a Calendar
+     *
+     * @param   calendarId
+     * @param   eventOptions
+     */
+    public readonly addEventToCalendar = async (
+        calendar: Calendar,
+        eventOptions: EntryOptions
+    ): Promise<CalendarEntry> => {
+        // Create CalendarEntry
+        const entry = await this.conn
+            .getRepository(CalendarEntry)
+            .save(new CalendarEntry({
+                calendarId: calendar.id,
+                eventId: eventOptions.event.id
+            }));
+
+        // Process entry so that its attributes are correct
+        entry.calendar = calendar;
+        entry.event = eventOptions.event;
+
+        return entry;
+    };
+
+    /**
+     * Retrieive relation between a Calendar and an Event
+     *
+     * @param   calendarId
+     * @param   eventId
+     */
+    public readonly getCalendarEntry = (
+        calendarId: number,
+        eventId: number
+    ): Promise<CalendarEntry | undefined> => {
+        return this.conn
+            .getRepository(CalendarEntry)
+            .findOne({ where: { calendarId: calendarId, eventId: eventId } });
+    };
+
+    /**
      * Remove the specified Calendar, taking care of its dependencies
      *
      * @param   calendarId
@@ -145,6 +186,10 @@ type MemberOptions = {
     user: User,
     role: CalendarMemberRole,
     invitationConfirmed: boolean
+};
+
+type EntryOptions = {
+    event: Event
 };
 
 

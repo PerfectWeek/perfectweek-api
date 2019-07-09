@@ -24,6 +24,7 @@ import NameValidator from "./validators/NameValidator";
 import PasswordValidator from "./validators/PasswordValidator";
 
 import CalendarPolicy from "./policies/CalendarPolicy";
+import EventPolicy from "./policies/EventPolicy";
 
 import ApiEndpointController from "./controllers/ApiEndpointController";
 import AuthLocalController from "./controllers/AuthLocalController";
@@ -68,6 +69,7 @@ function createServer(conn: Connection, jwtSecretKey: string): Server {
 
     // Create Policies
     const calendarPolicy = new CalendarPolicy();
+    const eventPolicy = new EventPolicy();
 
     // Create Validators
     const emailValidator = new EmailValidator();
@@ -97,7 +99,9 @@ function createServer(conn: Connection, jwtSecretKey: string): Server {
     );
     const calendarController = new CalendarController(
         calendarRepository,
+        eventRepository,
         calendarPolicy,
+        eventPolicy,
         calendarView
     );
     const eventController = new EventController(
