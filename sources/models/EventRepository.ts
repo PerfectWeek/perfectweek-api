@@ -102,6 +102,22 @@ class EventRepository {
 
         return query.getMany();
     };
+
+    public readonly inviteUsersToEvent = (
+        event: Event,
+        attendeeOptions: AttendeeOptions[]
+    ): Promise<EventAttendee[]> => {
+        const attendees = attendeeOptions.map(options => new EventAttendee({
+            eventId: event.id,
+            userId: options.user.id,
+            role: options.role,
+            status: options.status
+        }));
+
+        return this.conn
+            .getRepository(EventAttendee)
+            .save(attendees);
+    };
 };
 
 type AttendeeOptions = {
