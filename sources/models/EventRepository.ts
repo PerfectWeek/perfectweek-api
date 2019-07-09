@@ -62,6 +62,25 @@ class EventRepository {
         return createdEvent;
     };
 
+    public readonly getEventRelationship = (
+        eventId: number,
+        userId: number
+    ): Promise<EventAttendee | undefined> => {
+        return this.conn
+            .getRepository(EventAttendee)
+            .findOne({ where: { eventId: eventId, userId: userId } });
+    }
+
+    public readonly getEventWithAttendees = (eventId: number): Promise<Event | undefined> => {
+        return this.conn
+            .getRepository(Event)
+            .createQueryBuilder("e")
+            .innerJoinAndMapMany("e.attendees", "event_attendees", "ea", "e.id = ea.event_id")
+            .innerJoinAndMapOne("ea.attendee", "users", "u", "ea.user_id = u.id")
+            .where("e.id = :id", { id: eventId })
+            .getOne();
+    };
+
     public readonly getAllEventsForUserWithCalendars = (
         userId: number,
         eventOptions?: EventOptions
@@ -103,7 +122,7 @@ class EventRepository {
         return query.getMany();
     };
 
-    public readonly inviteUsersToEvent = (
+    public readonly addUsersToEvent = (
         event: Event,
         attendeeOptions: AttendeeOptions[]
     ): Promise<EventAttendee[]> => {
