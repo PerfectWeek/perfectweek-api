@@ -66,7 +66,7 @@ type EventData = {
     type: string,
     location?: string,
     visibility: EventVisibility,
-    color?: string
+    color: string
 };
 
 

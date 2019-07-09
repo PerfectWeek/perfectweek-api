@@ -15,6 +15,7 @@ import EventRepository from "./models/EventRepository";
 import PendingUserRepository from "./models/PendingUserRepository";
 import UserRepository from "./models/UserRepository";
 
+import DateService from "./services/DateService";
 import JwtService from "./services/JwtService";
 import PasswordService from "./services/PasswordService";
 
@@ -74,6 +75,7 @@ function createServer(conn: Connection, jwtSecretKey: string): Server {
     const passwordValidator = new PasswordValidator();
 
     // Create Services
+    const dateService = new DateService();
     const jwtService = new JwtService(jwtSecretKey);
     const passwordService = new PasswordService();
 
@@ -102,6 +104,7 @@ function createServer(conn: Connection, jwtSecretKey: string): Server {
         calendarRepository,
         eventRepository,
         calendarPolicy,
+        dateService,
         eventView
     );
     const userController = new UserController(

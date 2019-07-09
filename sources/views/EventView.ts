@@ -15,6 +15,7 @@ class EventView {
             end_time: event.endTime,
             type: event.type,
             visibility: event.visibility,
+            color: event.color
         };
     };
 
@@ -54,6 +55,22 @@ class EventView {
             ...this.formatEvent(event),
             // Attendees
             attendees: event.attendees.map(this.formatEventAttendee)
+        }
+    };
+
+    public readonly formatEventWithStatusAndCalendars = (eventStatus: EventAttendee): any => {
+        if (!eventStatus.event) {
+            throw new Error("Missing EventAttendee.event information");
+        }
+        if (!eventStatus.event.owningCalendars) {
+            throw new Error("Missing Event.owningCalendars information");
+        }
+
+        return {
+            // Event
+            ...this.formatEventWithStatus(eventStatus.event, eventStatus),
+            // Calendars
+            owning_calendars: eventStatus.event.owningCalendars.map(EventView.formatOwningCalendar)
         }
     };
 
