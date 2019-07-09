@@ -48,8 +48,7 @@ class EventRepository {
                 .getRepository(CalendarEntry)
                 .save(new CalendarEntry({
                     calendarId: calendarOptions.calendar.id,
-                    eventId: event.id,
-                    color: calendarOptions.color
+                    eventId: event.id
                 }));
             calendarEntry.calendar = calendarOptions.calendar;
             calendarEntry.event = createdEvent;
@@ -62,6 +61,47 @@ class EventRepository {
 
         return createdEvent;
     };
+
+    public readonly getAllEventsForUserWithCalendars = (
+        userId: number,
+        eventOptions?: EventOptions
+    ): Promise<EventAttendee[]> => {
+        let query = this.conn
+            .getRepository(EventAttendee)
+            .createQueryBuilder("ea")
+            .innerJoinAndMapOne("ea.event", "events", "e", "ea.event_id = e.id")
+            .where("ea.user_id = :id", { id: userId })
+            .leftJoinAndMapMany("e.owningCalendars", "calendar_entries", "ce", "ce.event_id = e.id")
+            .leftJoinAndMapOne("ce.calendar", "calendars", "c", "c.id = ce.calendar_id");
+
+        if (eventOptions) {
+            if (eventOptions.afterDate) {
+                query = query
+                    .andWhere("e.end_time >= :afterDate", { afterDate: eventOptions.afterDate });
+            }
+            if (eventOptions.beforeDate) {
+                query = query
+                    .andWhere("e.start_time <= :beforeDate", { beforeDate: eventOptions.beforeDate });
+            }
+            if (eventOptions.onlyCalendarIds) {
+                query = query
+                    .andWhere("ce.calendar_id IN (:...ids)", { ids: eventOptions.onlyCalendarIds });
+            }
+            if (eventOptions.exceptCalendarIds) {
+                query = query
+                    .andWhere(
+                        "(ce.calendar_id IS NULL OR ce.calendar_id NOT IN (:...ids))",
+                        { ids: eventOptions.exceptCalendarIds }
+                    );
+            }
+            if (eventOptions.onlyStatuses) {
+                query = query
+                    .andWhere("ea.status IN (:...statuses)", { statuses: eventOptions.onlyStatuses });
+            }
+        }
+
+        return query.getMany();
+    };
 };
 
 type AttendeeOptions = {
@@ -71,8 +111,15 @@ type AttendeeOptions = {
 };
 
 type CalendarOptions = {
-    calendar: Calendar,
-    color: string
+    calendar: Calendar
+};
+
+type EventOptions = {
+    afterDate?: Date,
+    beforeDate?: Date,
+    onlyCalendarIds?: number[],
+    exceptCalendarIds?: number[],
+    onlyStatuses?: EventAttendeeStatus[]
 };
 
 

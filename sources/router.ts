@@ -93,6 +93,11 @@ export function createRouter(
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(eventController.createEvent)
     );
+    router.get(
+        "/events",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(eventController.getAllEvents)
+    );
 
     return router;
 }

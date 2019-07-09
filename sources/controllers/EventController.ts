@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import Boom from "@hapi/boom";
+import { isUndefined } from "util";
 
 import EventAttendeeRole from "../core/enums/EventAttendeeRole";
-import EventAttendeeStatus from "../core/enums/EventAttendeeStatus";
+import EventAttendeeStatus, { eventAttendeeStatusFromString } from "../core/enums/EventAttendeeStatus";
 import { eventVisibilityFromString } from "../core/enums/EventVisibility";
 
 import EventView from "../views/EventView";
@@ -15,6 +16,8 @@ import Event from "../models/entities/Event";
 import CalendarRepository from "../models/CalendarRepository";
 import EventRepository from "../models/EventRepository";
 
+import DateService from "../services/DateService";
+
 import { trim } from "../utils/string/trim";
 import { getRequestingUser } from "../middleware/utils/getRequestingUser";
 
@@ -26,17 +29,21 @@ class EventController {
 
     private readonly calendarPolicy: CalendarPolicy;
 
+    private readonly dateService: DateService;
+
     private readonly eventView: EventView;
 
     constructor(
         calendarRepository: CalendarRepository,
         eventRepository: EventRepository,
         calendarPolicy: CalendarPolicy,
+        dateService: DateService,
         eventView: EventView
     ) {
         this.calendarRepository = calendarRepository;
         this.eventRepository = eventRepository;
         this.calendarPolicy = calendarPolicy;
+        this.dateService = dateService;
         this.eventView = eventView;
     }
 
@@ -51,11 +58,13 @@ class EventController {
         const eventVisibility = req.body.visibility;
         const eventDescription = req.body.description;
         const eventLocation = req.body.location;
+        const eventColor = req.body.color;
         if (!eventName
             || !eventStart
             || !eventEnd
             || !eventType
             || !eventVisibility
+            || !eventColor
         ) {
             throw Boom.badRequest("Missing fields for Event");
         }
@@ -107,7 +116,8 @@ class EventController {
                 type: eventType,
                 visibility: eventVisibility,
                 description: eventDescription,
-                location: eventLocation
+                location: eventLocation,
+                color: eventColor
             }),
             [{
                 user: requestingUser,
@@ -115,13 +125,92 @@ class EventController {
                 status: EventAttendeeStatus.Going
             }],
             calendar
-                ? { calendar: calendar, color: calendar.color }
+                ? { calendar: calendar }
                 : undefined
         );
+
+        // TODO: invite all member of the Calendar to the Event
 
         res.status(201).json({
             message: "Event created",
             event: this.eventView.formatEventWithAttendeesAndCalendars(createdEvent)
+        });
+    };
+
+    public readonly getAllEvents = async (req: Request, res: Response) => {
+        const requestingUser = getRequestingUser(req);
+
+        // Retrieve query parameters
+        const afterDateParam: string | undefined = req.query.after_date;
+        const beforeDateParam: string | undefined = req.query.before_date;
+        const onlyCalendarIdsParam: string[] | undefined = req.query.only_calendar_ids;
+        const exceptCalendarIdsParam: string[] | undefined = req.query.except_calendar_ids;
+        const onlyStatusesParam: string[] | undefined = req.query.only_statuses;
+
+        // Validate parameters
+        const afterDate = afterDateParam !== undefined
+            ? new Date(afterDateParam)
+            : undefined;
+        if (afterDate && !this.dateService.isValidDate(afterDate)) {
+            throw Boom.badRequest(`Invalid Date for query parameter "after_date"`);
+        }
+
+        const beforeDate = beforeDateParam !== undefined
+            ? new Date(beforeDateParam)
+            : undefined;
+        if (beforeDate && !this.dateService.isValidDate(beforeDate)) {
+            throw Boom.badRequest(`Invalid Date for query parameter "before_date"`);
+        }
+
+        const onlyCalendarIds = onlyCalendarIdsParam !== undefined
+            ? onlyCalendarIdsParam.map(idString => parseInt(idString, 10))
+            : undefined;
+        if (onlyCalendarIds) {
+            const invalidIdx = onlyCalendarIds.findIndex(isNaN);
+            if (invalidIdx !== -1) {
+                throw Boom.badRequest(`Invalid only_calendar_ids "${onlyCalendarIdsParam![invalidIdx]}"`);
+            }
+        }
+
+        const exceptCalendarIds = exceptCalendarIdsParam !== undefined
+            ? exceptCalendarIdsParam.map(idString => parseInt(idString, 10))
+            : undefined;
+        if (exceptCalendarIds) {
+            const invalidIdx = exceptCalendarIds.findIndex(isNaN);
+            if (invalidIdx !== -1) {
+                throw Boom.badRequest(`Invalid except_calendar_ids "${exceptCalendarIdsParam![invalidIdx]}"`);
+            }
+        }
+
+        const onlyStatuses = onlyStatusesParam !== undefined
+            ? onlyStatusesParam.map(eventAttendeeStatusFromString)
+            : undefined;
+        if (onlyStatuses) {
+            const invalidIdx = onlyStatuses.findIndex(isUndefined);
+            if (invalidIdx !== -1) {
+                throw Boom.badRequest(`Invalid only_statuses "${onlyStatusesParam![invalidIdx]}"`);
+            }
+        }
+
+        if (exceptCalendarIds !== undefined && onlyCalendarIds !== undefined) {
+            throw Boom.badRequest("only_calendar_ids and except_calendar_ids cannot be used at the same time");
+        }
+
+        const eventStatuses = await this.eventRepository.getAllEventsForUserWithCalendars(
+            requestingUser.id,
+            {
+                afterDate: afterDate,
+                beforeDate: beforeDate,
+                onlyCalendarIds: onlyCalendarIds,
+                exceptCalendarIds: exceptCalendarIds,
+                // No undefined statuses can remain in the list at this point
+                onlyStatuses: <EventAttendeeStatus[] | undefined>onlyStatuses
+            }
+        );
+
+        res.status(200).json({
+            message: "OK",
+            events: eventStatuses.map(this.eventView.formatEventWithStatusAndCalendars)
         });
     };
 }
