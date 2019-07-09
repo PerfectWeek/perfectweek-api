@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import Boom from "@hapi/boom";
 import { isUndefined } from "util";
 
+import CalendarMemberRole from "../core/enums/CalendarMemberRole";
 import EventAttendeeRole from "../core/enums/EventAttendeeRole";
 import EventAttendeeStatus, { eventAttendeeStatusFromString } from "../core/enums/EventAttendeeStatus";
 import { eventVisibilityFromString } from "../core/enums/EventVisibility";
@@ -101,7 +102,7 @@ class EventController {
             }
 
             // Retrieve the corresponding Calendar
-            calendar = await this.calendarRepository.getCalendar(calendarId);
+            calendar = await this.calendarRepository.getCalendarWithMembers(calendarId);
             if (!calendar) {
                 throw Boom.notFound("Calendar not found");
             }
@@ -129,7 +130,22 @@ class EventController {
                 : undefined
         );
 
-        // TODO: invite all member of the Calendar to the Event
+        // Invite all Calendar members to the Event
+        if (calendar) {
+            // Select Calendar members to invite
+            const calendarMembers = calendar.members!.filter(member => member.userId !== requestingUser.id);
+
+            // Create and save invitations
+            const attendees = calendarMembers.map(cm => ({
+                user: cm.member!,
+                role: calendarMemberRoleToEventAttendeeRole(cm.role),
+                status: EventAttendeeStatus.Invited
+            }));
+            const eventAttendees = await this.eventRepository.inviteUsersToEvent(createdEvent, attendees);
+
+            // Update Event object attendees list
+            createdEvent.attendees = createdEvent.attendees!.concat(eventAttendees);
+        }
 
         res.status(201).json({
             message: "Event created",
@@ -213,6 +229,18 @@ class EventController {
             events: eventStatuses.map(this.eventView.formatEventWithStatusAndCalendars)
         });
     };
+}
+
+
+//
+// Helpers
+//
+function calendarMemberRoleToEventAttendeeRole(calendarMemberRole: CalendarMemberRole): EventAttendeeRole {
+    switch (calendarMemberRole) {
+        case CalendarMemberRole.Admin: return EventAttendeeRole.Admin;
+        case CalendarMemberRole.Actor: return EventAttendeeRole.Actor;
+        case CalendarMemberRole.Spectator: return EventAttendeeRole.Spectator;
+    }
 }
 
 
