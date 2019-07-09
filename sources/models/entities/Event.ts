@@ -10,6 +10,7 @@ import EventAttendee from "./EventAttendee";
 class Event {
 
     private static readonly DEFAULT_VISIBILITY: EventVisibility = EventVisibility.Private;
+    private static readonly DEFAULT_COLOR: string = "#5abc95";
 
     @PrimaryGeneratedColumn()
     public id: number;
@@ -20,7 +21,7 @@ class Event {
     @Column()
     public description: string;
 
-    @Column({ name: "start_type", type: "timestamp with time zone" })
+    @Column({ name: "start_time", type: "timestamp with time zone" })
     public startTime: Date;
 
     @Column({ name: "end_time", type: "timestamp with time zone" })
@@ -35,6 +36,9 @@ class Event {
     @Column({ default: Event.DEFAULT_VISIBILITY })
     public visibility: EventVisibility;
 
+    @Column({ default: Event.DEFAULT_COLOR })
+    public color: string;
+
     public attendees?: EventAttendee[];
     public owningCalendars?: CalendarEntry[];
 
@@ -47,6 +51,7 @@ class Event {
         this.type = data && data.type || "";
         this.location = data && data.location || "";
         this.visibility = data && data.visibility || Event.DEFAULT_VISIBILITY;
+        this.color = data && data.color || Event.DEFAULT_COLOR;
 
         this.attendees = undefined;
         this.owningCalendars = undefined;
@@ -60,7 +65,8 @@ type EventData = {
     endTime: Date,
     type: string,
     location?: string,
-    visibility: EventVisibility
+    visibility: EventVisibility,
+    color?: string
 };
 
 
