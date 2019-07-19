@@ -108,6 +108,7 @@ function createServer(conn: Connection, jwtSecretKey: string): Server {
         calendarRepository,
         eventRepository,
         calendarPolicy,
+        eventPolicy,
         dateService,
         eventView
     );

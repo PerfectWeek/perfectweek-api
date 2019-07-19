@@ -9,6 +9,7 @@ import { eventVisibilityFromString } from "../core/enums/EventVisibility";
 import EventView from "../views/EventView";
 
 import CalendarPolicy from "../policies/CalendarPolicy";
+import EventPolicy from "../policies/EventPolicy";
 
 import Calendar from "../models/entities/Calendar";
 import Event from "../models/entities/Event";
@@ -30,6 +31,7 @@ class EventController {
     private readonly eventRepository: EventRepository;
 
     private readonly calendarPolicy: CalendarPolicy;
+    private readonly eventPolicy: EventPolicy;
 
     private readonly dateService: DateService;
 
@@ -39,12 +41,14 @@ class EventController {
         calendarRepository: CalendarRepository,
         eventRepository: EventRepository,
         calendarPolicy: CalendarPolicy,
+        eventPolicy: EventPolicy,
         dateService: DateService,
         eventView: EventView
     ) {
         this.calendarRepository = calendarRepository;
         this.eventRepository = eventRepository;
         this.calendarPolicy = calendarPolicy;
+        this.eventPolicy = eventPolicy;
         this.dateService = dateService;
         this.eventView = eventView;
     }
@@ -164,7 +168,7 @@ class EventController {
         const exceptCalendarIdsParam: string[] | undefined = req.query.except_calendar_ids;
         const onlyStatusesParam: string[] | undefined = req.query.only_statuses;
 
-        // Validate parameters
+        // Validate parameters (afterDate)
         const afterDate = afterDateParam !== undefined
             ? new Date(afterDateParam)
             : undefined;
@@ -172,6 +176,7 @@ class EventController {
             throw Boom.badRequest(`Invalid Date for query parameter "after_date"`);
         }
 
+        // Validate parameters (beforeDate)
         const beforeDate = beforeDateParam !== undefined
             ? new Date(beforeDateParam)
             : undefined;
@@ -179,6 +184,7 @@ class EventController {
             throw Boom.badRequest(`Invalid Date for query parameter "before_date"`);
         }
 
+        // Validate parameters (onlyCalendarIds)
         const onlyCalendarIds = onlyCalendarIdsParam !== undefined
             ? onlyCalendarIdsParam.map(idString => parseInt(idString, 10))
             : undefined;
@@ -189,6 +195,7 @@ class EventController {
             }
         }
 
+        // Validate parameters (exceptCalendarIds)
         const exceptCalendarIds = exceptCalendarIdsParam !== undefined
             ? exceptCalendarIdsParam.map(idString => parseInt(idString, 10))
             : undefined;
@@ -199,6 +206,7 @@ class EventController {
             }
         }
 
+        // Validate parameters (onlyStatuses)
         const onlyStatuses = onlyStatusesParam !== undefined
             ? onlyStatusesParam.map(eventAttendeeStatusFromString)
             : undefined;
@@ -209,10 +217,12 @@ class EventController {
             }
         }
 
+        // Prevent undefined behavior
         if (exceptCalendarIds !== undefined && onlyCalendarIds !== undefined) {
             throw Boom.badRequest("only_calendar_ids and except_calendar_ids cannot be used at the same time");
         }
 
+        // Get corresponding events
         const eventStatuses = await this.eventRepository.getAllEventsForUserWithCalendars(
             requestingUser.id,
             {
@@ -220,7 +230,7 @@ class EventController {
                 beforeDate: beforeDate,
                 onlyCalendarIds: onlyCalendarIds,
                 exceptCalendarIds: exceptCalendarIds,
-                // No undefined statuses can remain in the list at this point
+                // We made sure that no statuses are undefined previously
                 onlyStatuses: <EventAttendeeStatus[] | undefined>onlyStatuses
             }
         );
@@ -228,6 +238,36 @@ class EventController {
         res.status(200).json({
             message: "OK",
             events: eventStatuses.map(this.eventView.formatEventWithStatusAndCalendars)
+        });
+    };
+
+    public readonly getEventInfo = async (req: Request, res: Response) => {
+        const requestingUser = getRequestingUser(req);
+
+        // Validate request's parameters
+        const eventId: number = parseInt(req.params.eventId, 10);
+        if (isNaN(eventId)) {
+            throw Boom.notFound(`Event id "${req.params.eventId}" is invalid`);
+        }
+
+        // Retrieve Event
+        const event = await this.eventRepository.getEventWithAttendeesAndCalendarsForUser(eventId, requestingUser.id);
+        if (!event) {
+            throw Boom.notFound("Event not found");
+        }
+
+        // Retrieve attendee status
+        const eventStatus = await this.eventRepository.getEventRelationship(event.id, requestingUser.id);
+
+        // Make sure the User can access this Event
+        if (!this.eventPolicy.eventIsPublic(event)
+            && (!eventStatus || !this.eventPolicy.userCanReadEvent(eventStatus))) {
+            throw Boom.unauthorized("You cannot access this Event");
+        }
+
+        res.status(200).json({
+            message: "OK",
+            event: this.eventView.formatEventWithAttendeesAndCalendars(event)
         });
     };
 }

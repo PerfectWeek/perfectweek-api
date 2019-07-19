@@ -62,7 +62,7 @@ class EventRepository {
         return createdEvent;
     };
 
-    public readonly getEventRelationship = (
+    public readonly getEventRelationship = async (
         eventId: number,
         userId: number
     ): Promise<EventAttendee | undefined> => {
@@ -81,7 +81,33 @@ class EventRepository {
             .getOne();
     };
 
-    public readonly getAllEventsForUserWithCalendars = (
+    public readonly getEventWithAttendeesAndCalendarsForUser = async (
+        eventId: number,
+        userId: number
+    ): Promise<Event | undefined> => {
+        const event = await this.conn
+            .getRepository(Event)
+            .createQueryBuilder("e")
+            .innerJoinAndMapMany("e.attendees", "event_attendees", "ea", "e.id = ea.event_id")
+            .innerJoinAndMapOne("ea.attendee", "users", "u", "ea.user_id = u.id")
+            .where("e.id = :id", { id: eventId })
+            .getOne();
+
+        if (event) {
+            event.owningCalendars = await this.conn
+                .getRepository(CalendarEntry)
+                .createQueryBuilder("ce")
+                .innerJoinAndMapOne("ce.calendar", "calendars", "c", "ce.calendar_id = c.id")
+                .innerJoin("calendar_members", "cm", "c.id = cm.calendar_id")
+                .where("ce.event_id = :eventId", { eventId: eventId })
+                .andWhere("cm.user_id = :userId", { userId: userId })
+                .getMany();
+        }
+
+        return event;
+    };
+
+    public readonly getAllEventsForUserWithCalendars = async (
         userId: number,
         eventOptions?: EventOptions
     ): Promise<EventAttendee[]> => {
@@ -122,7 +148,7 @@ class EventRepository {
         return query.getMany();
     };
 
-    public readonly addUsersToEvent = (
+    public readonly addUsersToEvent = async (
         event: Event,
         attendeeOptions: AttendeeOptions[]
     ): Promise<EventAttendee[]> => {
