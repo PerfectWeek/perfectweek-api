@@ -10,22 +10,36 @@ class CalendarPolicy {
     };
 
     public readonly userCanEditCalendarMetadata = (calendarMembership: CalendarMember): boolean => {
-        return calendarMembership.invitationConfirmed
-            && calendarMembership.role === CalendarMemberRole.Admin;
+        return CalendarPolicy.memberIsAdmin(calendarMembership);
     };
 
     public readonly userCanAddEventToCalendar = (calendarMembership: CalendarMember): boolean => {
+        return CalendarPolicy.memberIsAtLeastActor(calendarMembership);
+    };
+
+    public readonly userCanRemoveEventFromCalendar = (calendarMembership: CalendarMember): boolean => {
+        return CalendarPolicy.memberIsAtLeastActor(calendarMembership);
+    };
+
+    public readonly userCanDeleteCalendar = (calendarMembership: CalendarMember): boolean => {
+        return CalendarPolicy.memberIsAdmin(calendarMembership);
+    };
+
+    //
+    // Helpers
+    //
+    private static memberIsAdmin(calendarMembership: CalendarMember): boolean {
+        return calendarMembership.invitationConfirmed
+            && calendarMembership.role === CalendarMemberRole.Admin;
+    }
+
+    private static memberIsAtLeastActor(calendarMembership: CalendarMember): boolean {
         return calendarMembership.invitationConfirmed
             && (
                 calendarMembership.role === CalendarMemberRole.Admin
                 || calendarMembership.role === CalendarMemberRole.Actor
             );
-    };
-
-    public readonly userCanDeleteCalendar = (calendarMembership: CalendarMember): boolean => {
-        return calendarMembership.invitationConfirmed
-            && calendarMembership.role === CalendarMemberRole.Admin;
-    };
+    }
 }
 
 

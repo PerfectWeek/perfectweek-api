@@ -92,6 +92,11 @@ export function createRouter(
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(calendarController.addEventToCalendar)
     );
+    router.delete(
+        "/calendars/:calendarId/events/:eventId",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(calendarController.removeEventFromCalendar)
+    );
 
     router.post(
         "/events",

@@ -156,13 +156,28 @@ class CalendarRepository {
      * @param   calendarId
      * @param   eventId
      */
-    public readonly getCalendarEntry = (
+    public readonly getCalendarEntry = async (
         calendarId: number,
         eventId: number
     ): Promise<CalendarEntry | undefined> => {
         return this.conn
             .getRepository(CalendarEntry)
             .findOne({ where: { calendarId: calendarId, eventId: eventId } });
+    };
+
+    /**
+     * Remove a specific Event from a Calendar
+     *
+     * @param   calendarId
+     * @param   eventId
+     */
+    public readonly removeEventFromCalendar = async (
+        calendarId: number,
+        eventId: number
+    ): Promise<void> => {
+        await this.conn
+            .getRepository(CalendarEntry)
+            .delete({ calendarId: calendarId, eventId: eventId });
     };
 
     /**
