@@ -108,6 +108,11 @@ export function createRouter(
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(eventController.getAllEvents)
     );
+    router.get(
+        "/events/:eventId",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(eventController.getEventInfo)
+    )
 
     return router;
 }
