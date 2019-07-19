@@ -235,12 +235,46 @@ class CalendarController {
         });
     };
 
+    public readonly removeEventFromCalendar = async (req: Request, res: Response) => {
+        const requestingUser = getRequestingUser(req);
+
+        // Validate request's parameters
+        const calendarId: number = parseInt(req.params.calendarId, 10);
+        if (isNaN(calendarId)) {
+            throw Boom.notFound(`Calendar id "${req.params.calendarId}" is invalid`);
+        }
+        const eventId: number = parseInt(req.params.eventId, 10);
+        if (isNaN(eventId)) {
+            throw Boom.notFound(`Event id "${req.params.eventId}" is invalid`);
+        }
+
+        // Make sure User can remove Event from this Calendar
+        const calendarMembership = await this.calendarRepository.getCalendarMemberShip(calendarId, requestingUser.id);
+        if (!calendarMembership
+            || !this.calendarPolicy.userCanRemoveEventFromCalendar(calendarMembership)) {
+            throw Boom.unauthorized("You cannot remove Event from this Calendar");
+        }
+
+        // Check if Event is in this Calendar
+        const calendarEntry = await this.calendarRepository.getCalendarEntry(calendarId, eventId);
+        if (!calendarEntry) {
+            throw Boom.notFound("This Event is not part of this Calendar");
+        }
+
+        // Remove Event from Calendar
+        await this.calendarRepository.removeEventFromCalendar(calendarEntry.calendarId, calendarEntry.eventId);
+
+        res.status(200).json({
+            message: "Event removed from Calendar"
+        });
+    };
+
     public readonly deleteCalendar = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
 
         // Validate request's parameters
         const calendarId: number = parseInt(req.params.calendarId, 10);
-        if (!calendarId) {
+        if (isNaN(calendarId)) {
             throw Boom.notFound(`Calendar id "${req.params.calendarId}" is invalid`);
         }
 
