@@ -16,6 +16,7 @@ import PendingUserRepository from "./models/PendingUserRepository";
 import UserRepository from "./models/UserRepository";
 
 import DateService from "./services/DateService";
+import ImageStorageService from "./services/ImageStorageService";
 import JwtService from "./services/JwtService";
 import PasswordService from "./services/PasswordService";
 
@@ -33,6 +34,7 @@ import EventController from "./controllers/EventController";
 import UserController from "./controllers/UserController";
 
 import * as AuthenticatedOnlyMiddleware from "./middleware/authenticatedOnlyMiddleware";
+import * as ImageUploadMiddleware from "./middleware/imageUploadMiddleware";
 
 
 function main(): void {
@@ -48,11 +50,16 @@ function main(): void {
         throw new Error('Missing environment variable "JWT_SECRET_KEY"');
     }
 
+    const ASSETS_INFO: AssetsInfo = {
+        assetVolumeRoot: "/assets",
+        userProfileImageDefault: "/app/sources/assets/images/user_profile_default.jpg"
+    };
+
     createConnection(dbConfig)
         .then((conn: Connection) => {
             console.info("[LOG] Connected to database");
 
-            const server = createServer(conn, jwtSecretKey);
+            const server = createServer(conn, jwtSecretKey, ASSETS_INFO);
 
             server.start(apiPort, () => {
                 console.info(`[LOG] Server started on port ${apiPort}`);
@@ -60,7 +67,7 @@ function main(): void {
         });
 }
 
-function createServer(conn: Connection, jwtSecretKey: string): Server {
+function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: AssetsInfo): Server {
     // Create Repositories
     const calendarRepository = new CalendarRepository(conn);
     const eventRepository = new EventRepository(conn);
@@ -80,6 +87,9 @@ function createServer(conn: Connection, jwtSecretKey: string): Server {
     const dateService = new DateService();
     const jwtService = new JwtService(jwtSecretKey);
     const passwordService = new PasswordService();
+    const userProfileImageStorageService = new ImageStorageService(
+        `${assetsInfo.assetVolumeRoot}/images/users/profile`
+    );
 
     // Create Views
     const calendarView = new CalendarView();
@@ -114,9 +124,11 @@ function createServer(conn: Connection, jwtSecretKey: string): Server {
     );
     const userController = new UserController(
         userRepository,
+        userProfileImageStorageService,
         userView,
         emailValidator,
-        nameValidator
+        nameValidator,
+        assetsInfo.userProfileImageDefault
     );
 
     // Create middlewares
@@ -124,6 +136,7 @@ function createServer(conn: Connection, jwtSecretKey: string): Server {
         userRepository,
         jwtService
     );
+    const imageUploadMiddleware = ImageUploadMiddleware.generateImageUploadMiddleware("/assets/uploads/images");
 
     // Create Router
     const router = Router.createRouter(
@@ -135,11 +148,18 @@ function createServer(conn: Connection, jwtSecretKey: string): Server {
         userController,
 
         // Middleware
-        authenticatedOnlyMiddleware
+        authenticatedOnlyMiddleware,
+        imageUploadMiddleware
     );
 
     return new Server(router);
 }
+
+type AssetsInfo = {
+    assetVolumeRoot: string,
+
+    userProfileImageDefault: string
+};
 
 
 // Run only if executed directly (e.g: `ts-node sources/main.ts`)

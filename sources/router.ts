@@ -1,4 +1,5 @@
 import { Router } from "express";
+import Multer from "multer";
 
 import ApiEndpointController from "./controllers/ApiEndpointController";
 import AuthLocalController from "./controllers/AuthLocalController";
@@ -19,7 +20,8 @@ export function createRouter(
     userController: UserController,
 
     // Middleware
-    authenticatedOnlyMiddleware: AuthenticatedOnlyMiddleware
+    authenticatedOnlyMiddleware: AuthenticatedOnlyMiddleware,
+    imageUploadMiddleware: Multer.Instance
 ): Router {
     const router = Router();
 
@@ -55,6 +57,21 @@ export function createRouter(
         "/users/me",
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(userController.deleteUser)
+    );
+    router.put(
+        "/users/me/images/profile",
+        asyncHandler(authenticatedOnlyMiddleware),
+        imageUploadMiddleware.single("image"),
+        userController.uploadImage
+    );
+    router.get(
+        "/users/me/images/profile",
+        asyncHandler(authenticatedOnlyMiddleware),
+        userController.getMyImage
+    );
+    router.get(
+        "/users/:userId/images/profile",
+        asyncHandler(userController.getUserImage)
     );
     router.put(
         "/users/me/timezone",
