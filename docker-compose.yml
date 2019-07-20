@@ -19,6 +19,7 @@ services:
     build: .
     volumes:
       - ./:/app
+      - api_assets:/assets
     ports:
       - 3000:3000
     depends_on:
@@ -34,3 +35,4 @@ services:
 
 volumes:
   db_data:
+  api_assets:
