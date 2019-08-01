@@ -35,18 +35,18 @@ class CalendarController {
         // Repositories
         calendarRepository: CalendarRepository,
         eventRepository: EventRepository,
-
         // Policies
         calendarPolicy: CalendarPolicy,
         eventPolicy: EventPolicy,
-
         // Views
         calendarView: CalendarView
     ) {
         this.calendarRepository = calendarRepository;
         this.eventRepository = eventRepository;
+
         this.calendarPolicy = calendarPolicy;
         this.eventPolicy = eventPolicy;
+
         this.calendarView = calendarView;
     }
 

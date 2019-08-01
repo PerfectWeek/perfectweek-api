@@ -30,25 +30,25 @@ class UserController {
     constructor(
         // Repositories
         userRepository: UserRepository,
-
         // Services
         userProfileImageStorageService: ImageStorageService,
-
         // Views
         userView: UserView,
-
         // Validators
         emailValidator: EmailValidator,
         nameValidator: NameValidator,
-
         // Images
         userProfileImageDefault: string
     ) {
         this.userRepository = userRepository;
+
         this.userProfileImageStorageService = userProfileImageStorageService;
+
         this.userView = userView;
+
         this.emailValidator = emailValidator;
         this.nameValidator = nameValidator;
+
         this.userProfileImageDefault = userProfileImageDefault;
     }
 

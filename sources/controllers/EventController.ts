@@ -38,18 +38,25 @@ class EventController {
     private readonly eventView: EventView;
 
     constructor(
+        // Repositories
         calendarRepository: CalendarRepository,
         eventRepository: EventRepository,
+        // Policies
         calendarPolicy: CalendarPolicy,
         eventPolicy: EventPolicy,
+        // Services
         dateService: DateService,
+        // Views
         eventView: EventView
     ) {
         this.calendarRepository = calendarRepository;
         this.eventRepository = eventRepository;
+
         this.calendarPolicy = calendarPolicy;
         this.eventPolicy = eventPolicy;
+
         this.dateService = dateService;
+
         this.eventView = eventView;
     }
 
