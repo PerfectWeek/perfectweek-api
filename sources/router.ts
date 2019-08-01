@@ -25,11 +25,17 @@ export function createRouter(
 ): Router {
     const router = Router();
 
+    //
+    // Endpoint
+    //
     router.get(
         "/",
         apiEndpointController.endpoint
     );
 
+    //
+    // Auth (local)
+    //
     router.post(
         "/auth/local/register",
         asyncHandler(authLocalController.registerUser)
@@ -43,6 +49,9 @@ export function createRouter(
         asyncHandler(authLocalController.validateEmail)
     );
 
+    //
+    // Users
+    //
     router.get(
         "/users/me",
         asyncHandler(authenticatedOnlyMiddleware),
@@ -64,21 +73,19 @@ export function createRouter(
         imageUploadMiddleware.single("image"),
         userController.uploadImage
     );
-    router.get(
-        "/users/me/images/profile",
-        asyncHandler(authenticatedOnlyMiddleware),
-        userController.getMyImage
-    );
-    router.get(
-        "/users/:userId/images/profile",
-        asyncHandler(userController.getUserImage)
-    );
     router.put(
         "/users/me/timezone",
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(userController.updateTimezone)
     );
+    router.get(
+        "/users/:userId/images/profile",
+        asyncHandler(userController.getUserImage)
+    );
 
+    //
+    // Calendars
+    //
     router.post(
         "/calendars",
         asyncHandler(authenticatedOnlyMiddleware),
@@ -115,6 +122,9 @@ export function createRouter(
         asyncHandler(calendarController.removeEventFromCalendar)
     );
 
+    //
+    // Events
+    //
     router.post(
         "/events",
         asyncHandler(authenticatedOnlyMiddleware),
