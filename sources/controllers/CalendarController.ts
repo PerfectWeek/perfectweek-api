@@ -19,6 +19,7 @@ import { trim } from "../utils/string/trim";
 import { getRequestingUser } from "../middleware/utils/getRequestingUser";
 
 import CalendarInvitationStatus, { calendarInvitationStatusFromString } from "./enums/CalendarInvitationStatus";
+import ImageStorageService from "../services/ImageStorageService";
 
 
 class CalendarController {
@@ -29,7 +30,11 @@ class CalendarController {
     private readonly calendarPolicy: CalendarPolicy;
     private readonly eventPolicy: EventPolicy;
 
+    private readonly calendarIconImageStorageService: ImageStorageService;
+
     private readonly calendarView: CalendarView;
+
+    private readonly calendarIconImageDefault: string;
 
     constructor(
         // Repositories
@@ -38,8 +43,12 @@ class CalendarController {
         // Policies
         calendarPolicy: CalendarPolicy,
         eventPolicy: EventPolicy,
+        // Services,
+        calendarIconImageStorageService: ImageStorageService,
         // Views
-        calendarView: CalendarView
+        calendarView: CalendarView,
+        // Images
+        calendarIconImageDefault: string
     ) {
         this.calendarRepository = calendarRepository;
         this.eventRepository = eventRepository;
@@ -47,7 +56,11 @@ class CalendarController {
         this.calendarPolicy = calendarPolicy;
         this.eventPolicy = eventPolicy;
 
+        this.calendarIconImageStorageService = calendarIconImageStorageService;
+
         this.calendarView = calendarView;
+
+        this.calendarIconImageDefault = calendarIconImageDefault;
     }
 
     public readonly createCalendar = async (req: Request, res: Response) => {
@@ -298,6 +311,59 @@ class CalendarController {
             message: "Calendar deleted"
         });
     };
+
+    public readonly uploadImage = async (req: Request, res: Response) => {
+        const requestingUser = getRequestingUser(req);
+
+        // Validate request's parameters
+        const calendarId: number = parseInt(req.params.calendarId, 10);
+        if (isNaN(calendarId)) {
+            throw Boom.notFound(`Calendar id "${req.params.calendarId}" is invalid`);
+        }
+
+        // Make sure an image has been uploaded
+        if (!req.file) {
+            throw Boom.badRequest("Missing image argument");
+        }
+
+        // Make sure User can edit Calendar
+        const calendarMembership = await this.calendarRepository.getCalendarMemberShip(calendarId, requestingUser.id);
+        if (!calendarMembership
+            || !this.calendarPolicy.userCanEditCalendarMetadata(calendarMembership)) {
+            throw Boom.unauthorized("You cannot access this Calendar");
+        }
+
+        // Store Calendar image
+        this.calendarIconImageStorageService.storeImage(req.file.path, req.file.mimetype, calendarId);
+
+        res.status(200).json({
+            message: "Image saved"
+        });
+    };
+
+    public readonly getImage = async (req: Request, res: Response) => {
+        const requestingUser = getRequestingUser(req);
+
+        // Validate request's parameters
+        const calendarId: number = parseInt(req.params.calendarId, 10);
+        if (isNaN(calendarId)) {
+            throw Boom.notFound(`Calendar id "${req.params.calendarId}" is invalid`);
+        }
+
+        // Make sure User can access Calendar
+        const calendarMembership = await this.calendarRepository.getCalendarMemberShip(calendarId, requestingUser.id);
+        if (!calendarMembership
+            || !this.calendarPolicy.userCanReadCalendar(calendarMembership)) {
+            throw Boom.unauthorized("You cannot access this Calendar");
+        }
+
+        const imagePath = this.calendarIconImageStorageService.getImageOrDefault(
+            calendarMembership.calendarId,
+            this.calendarIconImageDefault
+        );
+
+        res.status(200).sendFile(imagePath);
+    }
 }
 
 

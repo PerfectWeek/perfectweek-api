@@ -51,8 +51,18 @@ function main(): void {
     }
 
     const ASSETS_INFO: AssetsInfo = {
-        assetVolumeRoot: "/assets",
-        userProfileImageDefault: "/app/sources/assets/images/user_profile_default.jpg"
+        calendars: {
+            icon: {
+                baseDir: "/assets/images/calendars/icon",
+                default: "/app/sources/assets/images/calendar_icon_default.jpg"
+            }
+        },
+        users: {
+            profile: {
+                baseDir: "/assets/images/users/profile",
+                default: "/app/sources/assets/images/user_profile_default.jpg"
+            }
+        }
     };
 
     createConnection(dbConfig)
@@ -87,9 +97,8 @@ function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: Assets
     const dateService = new DateService();
     const jwtService = new JwtService(jwtSecretKey);
     const passwordService = new PasswordService();
-    const userProfileImageStorageService = new ImageStorageService(
-        `${assetsInfo.assetVolumeRoot}/images/users/profile`
-    );
+    const calendarIconImageStorageService = new ImageStorageService(assetsInfo.calendars.icon.baseDir);
+    const userProfileImageStorageService = new ImageStorageService(assetsInfo.users.profile.baseDir);
 
     // Create Views
     const calendarView = new CalendarView();
@@ -112,7 +121,9 @@ function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: Assets
         eventRepository,
         calendarPolicy,
         eventPolicy,
-        calendarView
+        calendarIconImageStorageService,
+        calendarView,
+        assetsInfo.calendars.icon.default
     );
     const eventController = new EventController(
         calendarRepository,
@@ -128,7 +139,7 @@ function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: Assets
         userView,
         emailValidator,
         nameValidator,
-        assetsInfo.userProfileImageDefault
+        assetsInfo.users.profile.default
     );
 
     // Create middlewares
@@ -156,9 +167,18 @@ function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: Assets
 }
 
 type AssetsInfo = {
-    assetVolumeRoot: string,
-
-    userProfileImageDefault: string
+    calendars: {
+        icon: {
+            baseDir: string,
+            default: string
+        }
+    },
+    users: {
+        profile: {
+            baseDir: string,
+            default: string
+        }
+    }
 };
 
 
