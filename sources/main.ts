@@ -41,7 +41,7 @@ function main(): void {
     const dbConfig = DbConfig.load("../ormconfig.js");
 
     const apiPort = parseInt(process.env.PORT || "", 10);
-    if (!apiPort) {
+    if (isNaN(apiPort)) {
         throw new Error('Missing environment variable "PORT"');
     }
 

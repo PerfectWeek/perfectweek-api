@@ -105,18 +105,6 @@ class UserController {
         });
     };
 
-    public readonly getMyImage = (req: Request, res: Response) => {
-        const requestingUser = getRequestingUser(req);
-
-        // Retrieve User's profile picture
-        const imagePath = this.userProfileImageStorageService.getImageOrDefault(
-            requestingUser.id,
-            this.userProfileImageDefault
-        );
-
-        res.status(200).sendFile(imagePath);
-    };
-
     public readonly getUserImage = async (req: Request, res: Response) => {
         // Validate request's parameters
         const userId: number = parseInt(req.params.userId, 10);
@@ -144,7 +132,7 @@ class UserController {
 
         // Validate request's parameters
         const newTimezone = parseInt(req.body.timezone, 10);
-        if (!newTimezone) {
+        if (isNaN(newTimezone)) {
             throw Boom.badRequest("No valid timezone provided");
         }
 
