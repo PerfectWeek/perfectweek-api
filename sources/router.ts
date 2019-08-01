@@ -111,6 +111,17 @@ export function createRouter(
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(calendarController.deleteCalendar)
     );
+    router.put(
+        "/calendars/:calendarId/images/icon",
+        asyncHandler(authenticatedOnlyMiddleware),
+        imageUploadMiddleware.single("image"),
+        asyncHandler(calendarController.uploadImage)
+    );
+    router.get(
+        "/calendars/:calendarId/images/icon",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(calendarController.getImage)
+    );
     router.post(
         "/calendars/:calendarId/events",
         asyncHandler(authenticatedOnlyMiddleware),
