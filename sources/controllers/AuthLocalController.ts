@@ -33,11 +33,9 @@ class AuthLocalController {
         // Repositories
         pendingUserRepository: PendingUserRepository,
         userRepository: UserRepository,
-
         // Services
         jwtService: JwtService,
         passwordService: PasswordService,
-
         // Validators
         emailValidator: EmailValidator,
         nameValidator: NameValidator,
@@ -45,8 +43,10 @@ class AuthLocalController {
     ) {
         this.pendingUserRepository = pendingUserRepository;
         this.userRepository = userRepository;
+
         this.jwtService = jwtService;
         this.passwordService = passwordService;
+
         this.emailValidator = emailValidator;
         this.nameValidator = nameValidator;
         this.passwordValidator = passwordValidator;
