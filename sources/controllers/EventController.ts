@@ -18,6 +18,7 @@ import CalendarRepository from "../models/CalendarRepository";
 import EventRepository from "../models/EventRepository";
 
 import DateService from "../services/DateService";
+import ImageStorageService from "../services/ImageStorageService";
 
 import { trim } from "../utils/string/trim";
 import { getRequestingUser } from "../middleware/utils/getRequestingUser";
@@ -34,8 +35,11 @@ class EventController {
     private readonly eventPolicy: EventPolicy;
 
     private readonly dateService: DateService;
+    private readonly eventImageStorageService: ImageStorageService;
 
     private readonly eventView: EventView;
+
+    private readonly eventImageDefault: string;
 
     constructor(
         // Repositories
@@ -46,8 +50,11 @@ class EventController {
         eventPolicy: EventPolicy,
         // Services
         dateService: DateService,
+        eventImageStorageService: ImageStorageService,
         // Views
-        eventView: EventView
+        eventView: EventView,
+        // Images
+        eventImageDefault: string
     ) {
         this.calendarRepository = calendarRepository;
         this.eventRepository = eventRepository;
@@ -56,8 +63,11 @@ class EventController {
         this.eventPolicy = eventPolicy;
 
         this.dateService = dateService;
+        this.eventImageStorageService = eventImageStorageService;
 
         this.eventView = eventView;
+
+        this.eventImageDefault = eventImageDefault;
     }
 
     public readonly createEvent = async (req: Request, res: Response) => {
@@ -276,6 +286,68 @@ class EventController {
             message: "OK",
             event: this.eventView.formatEventWithAttendeesAndCalendars(event)
         });
+    };
+
+    public readonly uploadImage = async (req: Request, res: Response) => {
+        const requestingUser = getRequestingUser(req);
+
+        // Validate request's parameters
+        const eventId: number = parseInt(req.params.eventId, 10);
+        if (isNaN(eventId)) {
+            throw Boom.notFound(`Event id "${req.params.eventId}" is invalid`);
+        }
+
+        // Make sure an image has been uploaded
+        if (!req.file) {
+            throw Boom.badRequest("Missing image argument");
+        }
+
+        // Retrieve Event
+        const eventStatus = await this.eventRepository.getEventRelationship(eventId, requestingUser.id);
+        if (!eventStatus
+            || !this.eventPolicy.userCanEditEvent(eventStatus)) {
+            throw Boom.notFound("You cannot access this Event");
+        }
+
+        // Store Event image
+        this.eventImageStorageService.storeImage(req.file.path, req.file.mimetype, eventId);
+
+        res.status(200).json({
+            message: "Image uploaded"
+        });
+    };
+
+    public readonly getImage = async (req: Request, res: Response) => {
+        const requestingUser = getRequestingUser(req);
+
+        // Validate request's parameters
+        const eventId: number = parseInt(req.params.eventId, 10);
+        if (isNaN(eventId)) {
+            throw Boom.notFound(`Event id "${req.params.eventId}" is invalid`);
+        }
+
+        // Retrieve Event
+        const event = await this.eventRepository.getEventWithAttendeesAndCalendarsForUser(eventId, requestingUser.id);
+        if (!event) {
+            throw Boom.notFound("Event not found");
+        }
+
+        // Retrieve attendee status
+        const eventStatus = await this.eventRepository.getEventRelationship(event.id, requestingUser.id);
+
+        // Make sure the User can access this Event
+        if (!this.eventPolicy.eventIsPublic(event)
+            && (!eventStatus || !this.eventPolicy.userCanReadEvent(eventStatus))) {
+            throw Boom.unauthorized("You cannot access this Event");
+        }
+
+        // Retrieve image
+        const imagePath = this.eventImageStorageService.getImageOrDefault(
+            event.id,
+            this.eventImageDefault
+        );
+
+        res.status(200).sendFile(imagePath);
     };
 }
 

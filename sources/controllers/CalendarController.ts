@@ -13,13 +13,14 @@ import EventRepository from "../models/EventRepository";
 import CalendarPolicy from "../policies/CalendarPolicy";
 import EventPolicy from "../policies/EventPolicy";
 
+import ImageStorageService from "../services/ImageStorageService";
+
 import CalendarView from "../views/CalendarView";
 
 import { trim } from "../utils/string/trim";
 import { getRequestingUser } from "../middleware/utils/getRequestingUser";
 
 import CalendarInvitationStatus, { calendarInvitationStatusFromString } from "./enums/CalendarInvitationStatus";
-import ImageStorageService from "../services/ImageStorageService";
 
 
 class CalendarController {

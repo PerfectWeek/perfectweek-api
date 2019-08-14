@@ -57,6 +57,12 @@ function main(): void {
                 default: "/app/sources/assets/images/calendar_icon_default.jpg"
             }
         },
+        events: {
+            image: {
+                baseDir: "/assets/images/events/image",
+                default: "/app/sources/assets/images/event_image_default.jpg"
+            }
+        },
         users: {
             profile: {
                 baseDir: "/assets/images/users/profile",
@@ -98,6 +104,7 @@ function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: Assets
     const jwtService = new JwtService(jwtSecretKey);
     const passwordService = new PasswordService();
     const calendarIconImageStorageService = new ImageStorageService(assetsInfo.calendars.icon.baseDir);
+    const eventImageStorageService = new ImageStorageService(assetsInfo.events.image.baseDir);
     const userProfileImageStorageService = new ImageStorageService(assetsInfo.users.profile.baseDir);
 
     // Create Views
@@ -131,7 +138,9 @@ function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: Assets
         calendarPolicy,
         eventPolicy,
         dateService,
-        eventView
+        eventImageStorageService,
+        eventView,
+        assetsInfo.events.image.default
     );
     const userController = new UserController(
         userRepository,
@@ -169,6 +178,12 @@ function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: Assets
 type AssetsInfo = {
     calendars: {
         icon: {
+            baseDir: string,
+            default: string
+        }
+    },
+    events: {
+        image: {
             baseDir: string,
             default: string
         }
