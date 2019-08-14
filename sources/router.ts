@@ -151,6 +151,17 @@ export function createRouter(
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(eventController.getEventInfo)
     )
+    router.put(
+        "/events/:eventId/images/icon",
+        asyncHandler(authenticatedOnlyMiddleware),
+        imageUploadMiddleware.single("image"),
+        asyncHandler(eventController.uploadImage)
+    );
+    router.get(
+        "/events/:eventId/images/icon",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(eventController.getImage)
+    );
 
     return router;
 }
