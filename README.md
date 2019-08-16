@@ -1,6 +1,6 @@
 # API
 
-[![Build Status](https://travis-ci.org/benard-g/api.svg?branch=master)](https://travis-ci.org/benard-g/api)
+[![Build Status](https://travis-ci.org/PerfectWeek/perfectweek-api.svg?branch=master)](https://travis-ci.org/PerfectWeek/perfectweek-api)
 
 PerfectWeek web API
 
@@ -34,7 +34,7 @@ To stop all running containers:
 docker-compose down
 ```
 
-If you also want to delete the local data (like the database), run the following:
+If you also want to delete the local data (like the database and stored images), run the following:
 
 ```sh
 docker-compose down -v
