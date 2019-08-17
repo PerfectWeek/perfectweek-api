@@ -36,6 +36,8 @@ import { UserController } from "./controllers/UserController";
 import * as AuthenticatedOnlyMiddleware from "./middleware/authenticatedOnlyMiddleware";
 import * as ImageUploadMiddleware from "./middleware/imageUploadMiddleware";
 
+const CURRENT_DIRECTORY: string = __dirname;
+
 function main(): void {
     const dbConfig = DbConfig.load("../ormconfig.js");
 
@@ -49,23 +51,28 @@ function main(): void {
         throw new Error('Missing environment variable "JWT_SECRET_KEY"');
     }
 
+    const assetsRootDir = process.env.ASSETS_ROOT_DIR;
+    if (!assetsRootDir) {
+        throw new Error('Missing environment variable "ASSETS_ROOT_DIR"');
+    }
+
     const ASSETS_INFO: AssetsInfo = {
         calendars: {
             icon: {
-                baseDir: "/assets/images/calendars/icon",
-                default: "/app/sources/assets/images/calendar_icon_default.jpg",
+                baseDir: `${assetsRootDir}/images/calendars/icon`,
+                default: `${CURRENT_DIRECTORY}/assets/images/calendar_icon_default.jpg`,
             },
         },
         events: {
             image: {
-                baseDir: "/assets/images/events/image",
-                default: "/app/sources/assets/images/event_image_default.jpg",
+                baseDir: `${assetsRootDir}/images/events/image`,
+                default: `${CURRENT_DIRECTORY}/assets/images/event_image_default.jpg`,
             },
         },
         users: {
             profile: {
-                baseDir: "/assets/images/users/profile",
-                default: "/app/sources/assets/images/user_profile_default.jpg",
+                baseDir: `${assetsRootDir}/images/users/profile`,
+                default: `${CURRENT_DIRECTORY}/assets/images/user_profile_default.jpg`,
             },
         },
     };

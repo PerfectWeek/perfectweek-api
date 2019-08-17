@@ -32,6 +32,7 @@ services:
       DB_PORT: 5432
       DB_PASSWORD: password
       JWT_SECRET_KEY: secret
+      ASSETS_ROOT_DIR: /assets
 
 volumes:
   db_data:
