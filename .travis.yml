@@ -7,7 +7,8 @@ services:
   - postgresql
 
 env:
-  - DATABASE_URL=postgres://postgres@127.0.0.1:5432/postgres JWT_SECRET_KEY=secret
+  - TEST_SUITE=unit-tests
+  - TEST_SUITE=linter
 
 install:
   - yarn install
@@ -16,4 +17,4 @@ before_script:
   - yarn run typeorm migration:run
 
 script:
-  - yarn run test --coverage
+  - yarn run test:$TEST_SUITE
