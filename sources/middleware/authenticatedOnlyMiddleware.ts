@@ -1,10 +1,9 @@
-import { Request, Response, NextFunction } from "express";
 import Boom from "@hapi/boom";
+import { NextFunction, Request, Response } from "express";
 
-import UserRepository from "../models/UserRepository";
+import { UserRepository } from "../models/UserRepository";
 
-import JwtService from "../services/JwtService";
-
+import { JwtService } from "../services/JwtService";
 
 export type AuthenticatedOnlyMiddleware = (req: Request, res: Response, next?: NextFunction) => Promise<void>;
 
@@ -12,7 +11,7 @@ const BEARER: string = "Bearer ";
 
 export function generateAuthenticatedOnlyMiddleware(
     userRepository: UserRepository,
-    jwtService: JwtService
+    jwtService: JwtService,
 ): AuthenticatedOnlyMiddleware {
     return async (req: Request, _res: Response, next?: NextFunction) => {
         // Check "authorization" header
@@ -40,14 +39,13 @@ export function generateAuthenticatedOnlyMiddleware(
         }
 
         // Add User to Request object
-        (<any>req).user = user;
+        (<any> req).user = user;
 
         if (next) {
             next();
         }
     };
 }
-
 
 //
 // Helpers

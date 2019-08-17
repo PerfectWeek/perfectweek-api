@@ -1,6 +1,5 @@
-import CalendarMemberRole from "../../core/enums/CalendarMemberRole";
-import EventAttendeeRole from "../../core/enums/EventAttendeeRole";
-
+import { CalendarMemberRole } from "../../core/enums/CalendarMemberRole";
+import { EventAttendeeRole } from "../../core/enums/EventAttendeeRole";
 
 export function calendarMemberRoleToEventAttendeeRole(calendarMemberRole: CalendarMemberRole): EventAttendeeRole {
     switch (calendarMemberRole) {

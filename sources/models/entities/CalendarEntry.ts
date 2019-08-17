@@ -1,11 +1,10 @@
-import { Entity, PrimaryColumn, Index } from "typeorm";
+import { Entity, Index, PrimaryColumn } from "typeorm";
 
-import Calendar from "./Calendar";
-import Event from "./Event";
-
+import { Calendar } from "./Calendar";
+import { Event } from "./Event";
 
 @Entity("calendar_entries")
-class CalendarEntry {
+export class CalendarEntry {
 
     @PrimaryColumn({ name: "calendar_id" })
     public calendarId: number;
@@ -28,8 +27,5 @@ class CalendarEntry {
 
 type CalendarEntryData = {
     calendarId: number,
-    eventId: number
+    eventId: number,
 };
-
-
-export default CalendarEntry;

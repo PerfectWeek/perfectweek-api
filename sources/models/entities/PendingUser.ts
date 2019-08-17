@@ -1,8 +1,7 @@
 import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 
-
 @Entity("pending_users")
-class PendingUser {
+export class PendingUser {
 
     @PrimaryGeneratedColumn()
     public id: number;
@@ -34,8 +33,5 @@ type PendingUserData = {
     name: string,
     email: string,
     cipheredPassword: string,
-    uuid: string
+    uuid: string,
 };
-
-
-export default PendingUser;

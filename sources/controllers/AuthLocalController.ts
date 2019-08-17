@@ -1,25 +1,24 @@
-import { Request, Response } from "express";
 import Boom from "@hapi/boom";
+import { Request, Response } from "express";
 import Uuid from "uuid/v4";
 
-import PendingUser from "../models/entities/PendingUser";
-import User from "../models/entities/User";
-import PendingUserRepository from "../models/PendingUserRepository";
-import UserRepository from "../models/UserRepository";
+import { PendingUser } from "../models/entities/PendingUser";
+import { User } from "../models/entities/User";
+import { PendingUserRepository } from "../models/PendingUserRepository";
+import { UserRepository } from "../models/UserRepository";
 
-import PasswordService from "../services/PasswordService";
-import JwtService from "../services/JwtService";
+import { JwtService } from "../services/JwtService";
+import { PasswordService } from "../services/PasswordService";
 
-import EmailValidator from "../validators/EmailValidator";
-import NameValidator from "../validators/NameValidator";
-import PasswordValidator from "../validators/PasswordValidator";
+import { EmailValidator } from "../validators/EmailValidator";
+import { NameValidator } from "../validators/NameValidator";
+import { PasswordValidator } from "../validators/PasswordValidator";
 
 import { trim } from "../utils/string/trim";
 
+export class AuthLocalController {
 
-class AuthLocalController {
-
-    private readonly pendingUserRepository: PendingUserRepository
+    private readonly pendingUserRepository: PendingUserRepository;
     private readonly userRepository: UserRepository;
 
     private readonly jwtService: JwtService;
@@ -39,7 +38,7 @@ class AuthLocalController {
         // Validators
         emailValidator: EmailValidator,
         nameValidator: NameValidator,
-        passwordValidator: PasswordValidator
+        passwordValidator: PasswordValidator,
     ) {
         this.pendingUserRepository = pendingUserRepository;
         this.userRepository = userRepository;
@@ -70,7 +69,7 @@ class AuthLocalController {
         if (!this.passwordValidator.validate(userPassword)) {
             throw Boom.badRequest(
                 "Password must be at least 8 characters long and "
-                + "contain lowercase letters, uppercase letters, digits and symbols"
+                + "contain lowercase letters, uppercase letters, digits and symbols",
             );
         }
 
@@ -89,22 +88,22 @@ class AuthLocalController {
 
         // Create a new PendingUser
         const pendingUser = await this.pendingUserRepository.createPendingUser(new PendingUser({
+            cipheredPassword: cipheredPassword,
             email: userEmail,
             name: userName,
-            cipheredPassword: cipheredPassword,
-            uuid: uuid
+            uuid: uuid,
         }));
 
         res.status(201).json({
             message: "User created",
             user: {
+                email: pendingUser.email,
                 id: pendingUser.id,
                 name: pendingUser.name,
-                email: pendingUser.email
             },
-            uuid: pendingUser.uuid // TODO: only in dev mode
+            uuid: pendingUser.uuid, // TODO: only in dev mode
         });
-    };
+    }
 
     public readonly validateEmail = async (req: Request, res: Response) => {
         const userUuid: string = req.params.uuid;
@@ -117,9 +116,9 @@ class AuthLocalController {
 
         // Remove PendingUser and create a real User
         const user = await this.userRepository.createUser(new User({
-            name: pendingUser.name,
+            cipheredPassword: pendingUser.cipheredPassword,
             email: pendingUser.email,
-            cipheredPassword: pendingUser.cipheredPassword
+            name: pendingUser.name,
         }));
         await this.pendingUserRepository.deletePendingUserById(pendingUser.id);
 
@@ -127,9 +126,9 @@ class AuthLocalController {
         await this.userRepository.createDefaultCalendarForUser(user);
 
         res.status(200).json({
-            message: "Email validated"
+            message: "Email validated",
         });
-    };
+    }
 
     public readonly authenticateUser = async (req: Request, res: Response) => {
         const userEmail = trim(req.body.email);
@@ -152,10 +151,7 @@ class AuthLocalController {
 
         res.status(200).json({
             message: "Success",
-            token: userToken
+            token: userToken,
         });
-    };
+    }
 }
-
-
-export default AuthLocalController;

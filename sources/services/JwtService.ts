@@ -1,7 +1,6 @@
 import Jwt from "jsonwebtoken";
 
-
-class JwtService {
+export class JwtService {
 
     private readonly privateKey: string;
 
@@ -11,13 +10,10 @@ class JwtService {
 
     public readonly tokenize = (data: any): string => {
         return Jwt.sign({ data: data }, this.privateKey);
-    };
+    }
 
     public readonly decode = (token: string): any => {
-        const { data: data } = <any>Jwt.verify(token, this.privateKey);
+        const { data: data } = <any> Jwt.verify(token, this.privateKey);
         return data;
-    };
+    }
 }
-
-
-export default JwtService;

@@ -1,14 +1,13 @@
-import { Entity, PrimaryColumn, Column, Index } from "typeorm";
+import { Column, Entity, Index, PrimaryColumn } from "typeorm";
 
-import EventAttendeeRole from "../../core/enums/EventAttendeeRole";
-import EventAttendeeStatus from "../../core/enums/EventAttendeeStatus";
+import { EventAttendeeRole } from "../../core/enums/EventAttendeeRole";
+import { EventAttendeeStatus } from "../../core/enums/EventAttendeeStatus";
 
-import Event from "./Event";
-import User from "./User";
-
+import { Event } from "./Event";
+import { User } from "./User";
 
 @Entity("event_attendees")
-class EventAttendee {
+export class EventAttendee {
 
     private static readonly DEFAULT_ROLE: EventAttendeeRole = EventAttendeeRole.Admin;
     private static readonly DEFAULT_STATUS: EventAttendeeStatus = EventAttendeeStatus.Going;
@@ -44,8 +43,5 @@ type EventAttendeeData = {
     eventId: number,
     userId: number,
     role: EventAttendeeRole,
-    status: EventAttendeeStatus
+    status: EventAttendeeStatus,
 };
-
-
-export default EventAttendee;

@@ -1,10 +1,9 @@
-enum EventAttendeeStatus {
+export enum EventAttendeeStatus {
     Going = "going",
     Maybe = "maybe",
     No = "no",
-    Invited = "invited"
-};
-
+    Invited = "invited",
+}
 
 export function eventAttendeeStatusFromString(status: string): EventAttendeeStatus | undefined {
     switch (status) {
@@ -15,6 +14,3 @@ export function eventAttendeeStatusFromString(status: string): EventAttendeeStat
         default: return undefined;
     }
 }
-
-
-export default EventAttendeeStatus;

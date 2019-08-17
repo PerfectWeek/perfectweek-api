@@ -1,8 +1,7 @@
-enum CalendarInvitationStatus {
+export enum CalendarInvitationStatus {
     Pending = "pending",
-    Confirmed = "confirmed"
+    Confirmed = "confirmed",
 }
-
 
 export function calendarInvitationStatusFromString(status: string): CalendarInvitationStatus | undefined {
     switch (status) {
@@ -11,6 +10,3 @@ export function calendarInvitationStatusFromString(status: string): CalendarInvi
         default: return undefined;
     }
 }
-
-
-export default CalendarInvitationStatus;

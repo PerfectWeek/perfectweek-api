@@ -1,11 +1,10 @@
 import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 
-import CalendarMember from "./CalendarMember";
-import Event from "./Event";
-
+import { CalendarMember } from "./CalendarMember";
+import { Event } from "./Event";
 
 @Entity("users")
-class User {
+export class User {
 
     @PrimaryGeneratedColumn()
     public id: number;
@@ -42,8 +41,5 @@ type UserData = {
     email: string,
     name: string,
     cipheredPassword: string,
-    timezone?: number
+    timezone?: number,
 };
-
-
-export default User;

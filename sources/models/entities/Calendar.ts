@@ -1,13 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
-import { baseTimeSlotPreferences, TimeSlotPreferences } from "../../core/utils/TimeSlotPreferences";
+import { BASE_TIME_SLOT_PREFERENCES, TimeSlotPreferences } from "../../core/utils/TimeSlotPreferences";
 
-import CalendarEntry from "./CalendarEntry";
-import CalendarMember from "./CalendarMember";
-
+import { CalendarEntry } from "./CalendarEntry";
+import { CalendarMember } from "./CalendarMember";
 
 @Entity("calendars")
-class Calendar {
+export class Calendar {
 
     private static readonly DEFAULT_COLOR: string = "#5abc95";
 
@@ -21,9 +20,9 @@ class Calendar {
     public color: string;
 
     @Column({
+        default: BASE_TIME_SLOT_PREFERENCES,
         name: "time_slot_preferences",
         type: "simple-json",
-        default: baseTimeSlotPreferences
     })
     public timeSlotPreferences: TimeSlotPreferences;
 
@@ -34,7 +33,7 @@ class Calendar {
         this.id = 0;
         this.name = data && data.name || "";
         this.color = data && data.color || Calendar.DEFAULT_COLOR;
-        this.timeSlotPreferences = baseTimeSlotPreferences;
+        this.timeSlotPreferences = BASE_TIME_SLOT_PREFERENCES;
 
         this.entries = undefined;
         this.members = undefined;
@@ -43,8 +42,5 @@ class Calendar {
 
 type CalendarData = {
     name: string,
-    color?: string
+    color?: string,
 };
-
-
-export default Calendar;

@@ -1,10 +1,9 @@
-import { Entity, PrimaryColumn, Index, Column } from "typeorm";
+import { Column, Entity, Index, PrimaryColumn } from "typeorm";
 
-import User from "./User";
-
+import { User } from "./User";
 
 @Entity("user_frienships")
-class UserFriendship {
+export class UserFriendship {
 
     @PrimaryColumn({name: "requesting_id"})
     public requestingId: number;
@@ -32,8 +31,5 @@ class UserFriendship {
 type UserFriendshipData = {
     requestingId: number,
     requestedId: number,
-    confirmed: boolean
+    confirmed: boolean,
 };
-
-
-export default UserFriendship;

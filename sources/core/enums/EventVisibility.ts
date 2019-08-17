@@ -1,8 +1,7 @@
-enum EventVisibility {
+export enum EventVisibility {
     Public = "public",
-    Private = "private"
-};
-
+    Private = "private",
+}
 
 export function eventVisibilityFromString(visibility: string): EventVisibility | undefined {
     switch (visibility) {
@@ -11,6 +10,3 @@ export function eventVisibilityFromString(visibility: string): EventVisibility |
         default: return undefined;
     }
 }
-
-
-export default EventVisibility;

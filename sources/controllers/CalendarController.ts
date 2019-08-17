@@ -1,29 +1,28 @@
-import { Request, Response } from "express";
 import Boom from "@hapi/boom";
+import { Request, Response } from "express";
 
-import CalendarMemberRole from "../core/enums/CalendarMemberRole";
-import EventAttendeeRole from "../core/enums/EventAttendeeRole";
-import EventAttendeeStatus from "../core/enums/EventAttendeeStatus";
+import { CalendarMemberRole } from "../core/enums/CalendarMemberRole";
+import { EventAttendeeRole } from "../core/enums/EventAttendeeRole";
+import { EventAttendeeStatus } from "../core/enums/EventAttendeeStatus";
 
-import Calendar from "../models/entities/Calendar";
+import { Calendar } from "../models/entities/Calendar";
 
-import CalendarRepository from "../models/CalendarRepository";
-import EventRepository from "../models/EventRepository";
+import { CalendarRepository } from "../models/CalendarRepository";
+import { EventRepository } from "../models/EventRepository";
 
-import CalendarPolicy from "../policies/CalendarPolicy";
-import EventPolicy from "../policies/EventPolicy";
+import { CalendarPolicy } from "../policies/CalendarPolicy";
+import { EventPolicy } from "../policies/EventPolicy";
 
-import ImageStorageService from "../services/ImageStorageService";
+import { ImageStorageService } from "../services/ImageStorageService";
 
-import CalendarView from "../views/CalendarView";
+import { CalendarView } from "../views/CalendarView";
 
-import { trim } from "../utils/string/trim";
 import { getRequestingUser } from "../middleware/utils/getRequestingUser";
+import { trim } from "../utils/string/trim";
 
-import CalendarInvitationStatus, { calendarInvitationStatusFromString } from "./enums/CalendarInvitationStatus";
+import { CalendarInvitationStatus, calendarInvitationStatusFromString } from "./enums/CalendarInvitationStatus";
 
-
-class CalendarController {
+export class CalendarController {
 
     private readonly calendarRepository: CalendarRepository;
     private readonly eventRepository: EventRepository;
@@ -49,7 +48,7 @@ class CalendarController {
         // Views
         calendarView: CalendarView,
         // Images
-        calendarIconImageDefault: string
+        calendarIconImageDefault: string,
     ) {
         this.calendarRepository = calendarRepository;
         this.eventRepository = eventRepository;
@@ -78,14 +77,14 @@ class CalendarController {
         // Create and save new Calendar
         const calendar = await this.calendarRepository.createCalendar(
             new Calendar({
+                color: calendarColor,
                 name: calendarName,
-                color: calendarColor
             }),
             [{
-                user: requestingUser,
+                invitationConfirmed: true,
                 role: CalendarMemberRole.Admin,
-                invitationConfirmed: true
-            }]
+                user: requestingUser,
+            }],
         );
 
         // Make sure the requesting User has been added to the Calendar
@@ -95,10 +94,10 @@ class CalendarController {
         }
 
         res.status(201).json({
+            calendar: this.calendarView.formatCalendarWithMembershipAndMembers(calendar, calendarMembership),
             message: "Calendar created",
-            calendar: this.calendarView.formatCalendarWithMembershipAndMembers(calendar, calendarMembership)
         });
-    };
+    }
 
     public readonly getCalendarInfo = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
@@ -123,10 +122,10 @@ class CalendarController {
         }
 
         res.status(200).json({
+            calendar: this.calendarView.formatCalendarWithMembershipAndMembers(calendar, calendarMembership),
             message: "OK",
-            calendar: this.calendarView.formatCalendarWithMembershipAndMembers(calendar, calendarMembership)
         });
-    };
+    }
 
     public readonly editCalendarInfo = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
@@ -161,10 +160,10 @@ class CalendarController {
         const updatedCalendar = await this.calendarRepository.updateCalendar(calendar);
 
         res.status(200).json({
+            calendar: this.calendarView.formatCalendarWithMembership(updatedCalendar, calendarMembership),
             message: "OK",
-            calendar: this.calendarView.formatCalendarWithMembership(updatedCalendar, calendarMembership)
         });
-    };
+    }
 
     public readonly getAllCalendarsOfRequestingUser = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
@@ -186,10 +185,10 @@ class CalendarController {
         const calendarMembers = await this.calendarRepository.getAllCalendarsForUserId(requestingUser.id, options);
 
         res.status(200).json({
+            calendars: calendarMembers.map(this.calendarView.formatCalendarFromMembership),
             message: "OK",
-            calendars: calendarMembers.map(this.calendarView.formatCalendarFromMembership)
         });
-    };
+    }
 
     public readonly addEventToCalendar = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
@@ -238,16 +237,16 @@ class CalendarController {
         const newAttendees = calendar.members!
             .filter(m => !existingAttendees.has(m.member!.id))
             .map(m => ({
-                user: m.member!,
                 role: EventAttendeeRole.Spectator,
-                status: EventAttendeeStatus.Invited
+                status: EventAttendeeStatus.Invited,
+                user: m.member!,
             }));
-        await this.eventRepository.addUsersToEvent(event, newAttendees)
+        await this.eventRepository.addUsersToEvent(event, newAttendees);
 
         res.status(200).json({
-            message: "Event added to Calendar"
+            message: "Event added to Calendar",
         });
-    };
+    }
 
     public readonly removeEventFromCalendar = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
@@ -279,9 +278,9 @@ class CalendarController {
         await this.calendarRepository.removeEventFromCalendar(calendarEntry.calendarId, calendarEntry.eventId);
 
         res.status(200).json({
-            message: "Event removed from Calendar"
+            message: "Event removed from Calendar",
         });
-    };
+    }
 
     public readonly deleteCalendar = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
@@ -309,9 +308,9 @@ class CalendarController {
         await this.calendarRepository.deleteCalendar(calendar.id);
 
         res.status(200).json({
-            message: "Calendar deleted"
+            message: "Calendar deleted",
         });
-    };
+    }
 
     public readonly uploadImage = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
@@ -338,9 +337,9 @@ class CalendarController {
         this.calendarIconImageStorageService.storeImage(req.file.path, req.file.mimetype, calendarId);
 
         res.status(200).json({
-            message: "Image saved"
+            message: "Image saved",
         });
-    };
+    }
 
     public readonly getImage = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
@@ -360,12 +359,9 @@ class CalendarController {
 
         const imagePath = this.calendarIconImageStorageService.getImageOrDefault(
             calendarMembership.calendarId,
-            this.calendarIconImageDefault
+            this.calendarIconImageDefault,
         );
 
         res.status(200).sendFile(imagePath);
     }
 }
-
-
-export default CalendarController;

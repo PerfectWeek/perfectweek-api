@@ -1,16 +1,15 @@
 import { Connection } from "typeorm";
 
-import EventAttendeeRole from "../core/enums/EventAttendeeRole";
-import EventAttendeeStatus from "../core/enums/EventAttendeeStatus";
+import { EventAttendeeRole } from "../core/enums/EventAttendeeRole";
+import { EventAttendeeStatus } from "../core/enums/EventAttendeeStatus";
 
-import Calendar from "./entities/Calendar";
-import CalendarEntry from "./entities/CalendarEntry";
-import Event from "./entities/Event";
-import EventAttendee from "./entities/EventAttendee";
-import User from "./entities/User";
+import { Calendar } from "./entities/Calendar";
+import { CalendarEntry } from "./entities/CalendarEntry";
+import { Event } from "./entities/Event";
+import { EventAttendee } from "./entities/EventAttendee";
+import { User } from "./entities/User";
 
-
-class EventRepository {
+export class EventRepository {
 
     private readonly conn: Connection;
 
@@ -21,7 +20,7 @@ class EventRepository {
     public readonly createEvent = async (
         event: Event,
         attendeesOptions: AttendeeOptions[],
-        calendarOptions?: CalendarOptions
+        calendarOptions?: CalendarOptions,
     ): Promise<Event> => {
         // Created Event
         const createdEvent = await this.conn
@@ -31,9 +30,9 @@ class EventRepository {
         // Create EventAttendees
         const attendees = attendeesOptions.map(options => new EventAttendee({
             eventId: createdEvent.id,
-            userId: options.user.id,
             role: options.role,
-            status: options.status
+            status: options.status,
+            userId: options.user.id,
         }));
         const createdAttendees = await this.conn
             .getRepository(EventAttendee)
@@ -48,7 +47,7 @@ class EventRepository {
                 .getRepository(CalendarEntry)
                 .save(new CalendarEntry({
                     calendarId: calendarOptions.calendar.id,
-                    eventId: event.id
+                    eventId: event.id,
                 }));
             calendarEntry.calendar = calendarOptions.calendar;
             calendarEntry.event = createdEvent;
@@ -60,18 +59,18 @@ class EventRepository {
         }
 
         return createdEvent;
-    };
+    }
 
     public readonly getEventRelationship = async (
         eventId: number,
-        userId: number
+        userId: number,
     ): Promise<EventAttendee | undefined> => {
         return this.conn
             .getRepository(EventAttendee)
             .findOne({ where: { eventId: eventId, userId: userId } });
     }
 
-    public readonly getEventWithAttendees = (eventId: number): Promise<Event | undefined> => {
+    public readonly getEventWithAttendees = async (eventId: number): Promise<Event | undefined> => {
         return this.conn
             .getRepository(Event)
             .createQueryBuilder("e")
@@ -79,11 +78,11 @@ class EventRepository {
             .innerJoinAndMapOne("ea.attendee", "users", "u", "ea.user_id = u.id")
             .where("e.id = :id", { id: eventId })
             .getOne();
-    };
+    }
 
     public readonly getEventWithAttendeesAndCalendarsForUser = async (
         eventId: number,
-        userId: number
+        userId: number,
     ): Promise<Event | undefined> => {
         const event = await this.conn
             .getRepository(Event)
@@ -105,11 +104,11 @@ class EventRepository {
         }
 
         return event;
-    };
+    }
 
     public readonly getAllEventsForUserWithCalendars = async (
         userId: number,
-        eventOptions?: EventOptions
+        eventOptions?: EventOptions,
     ): Promise<EventAttendee[]> => {
         let query = this.conn
             .getRepository(EventAttendee)
@@ -136,7 +135,7 @@ class EventRepository {
                 query = query
                     .andWhere(
                         "(ce.calendar_id IS NULL OR ce.calendar_id NOT IN (:...ids))",
-                        { ids: eventOptions.exceptCalendarIds }
+                        { ids: eventOptions.exceptCalendarIds },
                     );
             }
             if (eventOptions.onlyStatuses) {
@@ -146,33 +145,33 @@ class EventRepository {
         }
 
         return query.getMany();
-    };
+    }
 
     public readonly addUsersToEvent = async (
         event: Event,
-        attendeeOptions: AttendeeOptions[]
+        attendeeOptions: AttendeeOptions[],
     ): Promise<EventAttendee[]> => {
         const attendees = attendeeOptions.map(options => new EventAttendee({
             eventId: event.id,
-            userId: options.user.id,
             role: options.role,
-            status: options.status
+            status: options.status,
+            userId: options.user.id,
         }));
 
         return this.conn
             .getRepository(EventAttendee)
             .save(attendees);
-    };
-};
+    }
+}
 
 type AttendeeOptions = {
     user: User,
     role: EventAttendeeRole,
-    status: EventAttendeeStatus
+    status: EventAttendeeStatus,
 };
 
 type CalendarOptions = {
-    calendar: Calendar
+    calendar: Calendar,
 };
 
 type EventOptions = {
@@ -180,16 +179,15 @@ type EventOptions = {
     beforeDate?: Date,
     onlyCalendarIds?: number[],
     exceptCalendarIds?: number[],
-    onlyStatuses?: EventAttendeeStatus[]
+    onlyStatuses?: EventAttendeeStatus[],
 };
-
 
 //
 // Helpers
 //
 function putAttendeeInEventAttendee(
     eventAttendee: EventAttendee,
-    attendees: Map<number, User>
+    attendees: Map<number, User>,
 ): EventAttendee {
     const matchingAttendee = attendees.get(eventAttendee.userId);
 
@@ -200,6 +198,3 @@ function putAttendeeInEventAttendee(
     eventAttendee.attendee = matchingAttendee;
     return eventAttendee;
 }
-
-
-export default EventRepository;

@@ -1,9 +1,8 @@
-enum CalendarMemberRole {
+export enum CalendarMemberRole {
     Admin = "admin",
     Actor = "actor",
-    Spectator = "spectator"
-};
-
+    Spectator = "spectator",
+}
 
 export function calendarMemberRoleFromString(role: string): CalendarMemberRole | undefined {
     switch (role) {
@@ -13,6 +12,3 @@ export function calendarMemberRoleFromString(role: string): CalendarMemberRole |
         default: return undefined;
     }
 }
-
-
-export default CalendarMemberRole;
