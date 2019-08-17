@@ -1,4 +1,4 @@
-class PasswordValidator {
+export class PasswordValidator {
 
     private readonly containsDigitRegex: RegExp;
     private readonly containsLowercaseRegex: RegExp;
@@ -18,8 +18,5 @@ class PasswordValidator {
             && this.containsLowercaseRegex.test(password)
             && this.containsUppercaseRegex.test(password)
             && this.containsSymbolRegex.test(password);
-    };
+    }
 }
-
-
-export default PasswordValidator;

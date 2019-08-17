@@ -1,20 +1,19 @@
-import { Request, Response } from "express";
 import Boom from "@hapi/boom";
+import { Request, Response } from "express";
 
-import UserRepository from "../models/UserRepository";
+import { UserRepository } from "../models/UserRepository";
 
-import ImageStorageService from "../services/ImageStorageService";
+import { ImageStorageService } from "../services/ImageStorageService";
 
-import UserView from "../views/UserView";
+import { UserView } from "../views/UserView";
 
-import EmailValidator from "../validators/EmailValidator";
-import NameValidator from "../validators/NameValidator";
+import { EmailValidator } from "../validators/EmailValidator";
+import { NameValidator } from "../validators/NameValidator";
 
-import { trim } from "../utils/string/trim";
 import { getRequestingUser } from "../middleware/utils/getRequestingUser";
+import { trim } from "../utils/string/trim";
 
-
-class UserController {
+export class UserController {
 
     private readonly userRepository: UserRepository;
 
@@ -38,7 +37,7 @@ class UserController {
         emailValidator: EmailValidator,
         nameValidator: NameValidator,
         // Images
-        userProfileImageDefault: string
+        userProfileImageDefault: string,
     ) {
         this.userRepository = userRepository;
 
@@ -57,9 +56,9 @@ class UserController {
 
         res.status(200).json({
             message: "OK",
-            user: this.userView.formatPrivateUser(requestingUser)
+            user: this.userView.formatPrivateUser(requestingUser),
         });
-    };
+    }
 
     public readonly updateMyInfo = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
@@ -85,9 +84,9 @@ class UserController {
 
         res.status(200).json({
             message: "OK",
-            user: this.userView.formatPrivateUser(updatedUser)
+            user: this.userView.formatPrivateUser(updatedUser),
         });
-    };
+    }
 
     public readonly uploadImage = (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
@@ -101,9 +100,9 @@ class UserController {
         this.userProfileImageStorageService.storeImage(req.file.path, req.file.mimetype, requestingUser.id);
 
         res.status(200).json({
-            message: "Image uploaded"
+            message: "Image uploaded",
         });
-    };
+    }
 
     public readonly getUserImage = async (req: Request, res: Response) => {
         // Validate request's parameters
@@ -121,11 +120,11 @@ class UserController {
         // Retrieve User's profile picture
         const imagePath = this.userProfileImageStorageService.getImageOrDefault(
             user.id,
-            this.userProfileImageDefault
+            this.userProfileImageDefault,
         );
 
         res.status(200).sendFile(imagePath);
-    };
+    }
 
     public readonly updateTimezone = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
@@ -141,9 +140,9 @@ class UserController {
         await this.userRepository.updateUser(requestingUser);
 
         res.status(200).json({
-            message: "Timezone updated"
+            message: "Timezone updated",
         });
-    };
+    }
 
     public readonly deleteUser = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
@@ -151,10 +150,7 @@ class UserController {
         await this.userRepository.deleteUser(requestingUser.id);
 
         res.status(200).json({
-            message: "User deleted"
+            message: "User deleted",
         });
-    };
+    }
 }
-
-
-export default UserController;

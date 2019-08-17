@@ -1,4 +1,4 @@
-class EmailValidator {
+export class EmailValidator {
 
     private readonly emailRegex: RegExp;
 
@@ -10,6 +10,3 @@ class EmailValidator {
         return this.emailRegex.test(email);
     }
 }
-
-
-export default EmailValidator;

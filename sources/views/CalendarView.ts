@@ -1,28 +1,27 @@
-import Calendar from "../models/entities/Calendar";
-import CalendarMember from "../models/entities/CalendarMember";
+import { Calendar } from "../models/entities/Calendar";
+import { CalendarMember } from "../models/entities/CalendarMember";
 
-
-class CalendarView {
+export class CalendarView {
 
     public readonly formatCalendar = (calendar: Calendar): any => {
         return {
+            color: calendar.color,
             id: calendar.id,
             name: calendar.name,
-            color: calendar.color
         };
-    };
+    }
 
     public readonly formatCalendarWithMembership = (
         calendar: Calendar,
-        membership: CalendarMember
+        membership: CalendarMember,
     ): any => {
         return {
             // Calendar
             ...this.formatCalendar(calendar),
             // Membership
-            ...CalendarView.formatMemberShipStatus(membership)
+            ...CalendarView.formatMemberShipStatus(membership),
         };
-    };
+    }
 
     public readonly formatCalendarMember = (membership: CalendarMember): any => {
         if (!membership.member) {
@@ -34,9 +33,9 @@ class CalendarView {
             id: membership.userId,
             name: membership.member.name,
             // Membership
-            ...CalendarView.formatMemberShipStatus(membership)
+            ...CalendarView.formatMemberShipStatus(membership),
         };
-    };
+    }
 
     public readonly formatCalendarFromMembership = (membership: CalendarMember): any => {
         if (!membership.calendar) {
@@ -47,13 +46,13 @@ class CalendarView {
             // Calendar
             ...this.formatCalendar(membership.calendar),
             // Membership
-            ...CalendarView.formatMemberShipStatus(membership)
+            ...CalendarView.formatMemberShipStatus(membership),
         };
-    };
+    }
 
     public readonly formatCalendarWithMembershipAndMembers = (
         calendar: Calendar,
-        membership: CalendarMember
+        membership: CalendarMember,
     ): any => {
         if (!calendar.members) {
             throw new Error("Missing Calendar.members information");
@@ -63,17 +62,14 @@ class CalendarView {
             // Calendar
             ...this.formatCalendarWithMembership(calendar, membership),
             // Members
-            members: calendar.members.map(this.formatCalendarMember)
+            members: calendar.members.map(this.formatCalendarMember),
         };
-    };
+    }
 
     private static formatMemberShipStatus(membership: CalendarMember): any {
         return {
+            invitation_confirmed: membership.invitationConfirmed,
             role: membership.role,
-            invitation_confirmed: membership.invitationConfirmed
         };
-    };
+    }
 }
-
-
-export default CalendarView;

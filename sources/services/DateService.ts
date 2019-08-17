@@ -1,4 +1,4 @@
-class DateService {
+export class DateService {
 
     // From https://stackoverflow.com/a/43794682/6864469
     public readonly MIN_DATE: Date;
@@ -11,8 +11,5 @@ class DateService {
 
     public readonly isValidDate = (date: Date): boolean => {
         return !isNaN(date.getTime());
-    };
+    }
 }
-
-
-export default DateService;

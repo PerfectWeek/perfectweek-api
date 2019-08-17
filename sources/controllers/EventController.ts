@@ -1,32 +1,31 @@
-import { Request, Response } from "express";
 import Boom from "@hapi/boom";
+import { Request, Response } from "express";
 import { isUndefined } from "util";
 
-import EventAttendeeRole from "../core/enums/EventAttendeeRole";
-import EventAttendeeStatus, { eventAttendeeStatusFromString } from "../core/enums/EventAttendeeStatus";
+import { EventAttendeeRole } from "../core/enums/EventAttendeeRole";
+import { EventAttendeeStatus, eventAttendeeStatusFromString } from "../core/enums/EventAttendeeStatus";
 import { eventVisibilityFromString } from "../core/enums/EventVisibility";
 
-import EventView from "../views/EventView";
+import { EventView } from "../views/EventView";
 
-import CalendarPolicy from "../policies/CalendarPolicy";
-import EventPolicy from "../policies/EventPolicy";
+import { CalendarPolicy } from "../policies/CalendarPolicy";
+import { EventPolicy } from "../policies/EventPolicy";
 
-import Calendar from "../models/entities/Calendar";
-import Event from "../models/entities/Event";
+import { Calendar } from "../models/entities/Calendar";
+import { Event } from "../models/entities/Event";
 
-import CalendarRepository from "../models/CalendarRepository";
-import EventRepository from "../models/EventRepository";
+import { CalendarRepository } from "../models/CalendarRepository";
+import { EventRepository } from "../models/EventRepository";
 
-import DateService from "../services/DateService";
-import ImageStorageService from "../services/ImageStorageService";
+import { DateService } from "../services/DateService";
+import { ImageStorageService } from "../services/ImageStorageService";
 
-import { trim } from "../utils/string/trim";
 import { getRequestingUser } from "../middleware/utils/getRequestingUser";
+import { trim } from "../utils/string/trim";
 
 import { calendarMemberRoleToEventAttendeeRole } from "./utils/calendarMemberRoleToEventAttendeeRole";
 
-
-class EventController {
+export class EventController {
 
     private readonly calendarRepository: CalendarRepository;
     private readonly eventRepository: EventRepository;
@@ -54,7 +53,7 @@ class EventController {
         // Views
         eventView: EventView,
         // Images
-        eventImageDefault: string
+        eventImageDefault: string,
     ) {
         this.calendarRepository = calendarRepository;
         this.eventRepository = eventRepository;
@@ -111,12 +110,12 @@ class EventController {
         }
 
         // If a Calendar has been specified, make sure the User can access it
-        let calendar: Calendar | undefined = undefined;
+        let calendar: Calendar | undefined;
         if (calendarId) {
             // Ensure the User is a member of the Calendar and has enough rights
             const calendarMembership = await this.calendarRepository.getCalendarMemberShip(
                 calendarId,
-                requestingUser.id
+                requestingUser.id,
             );
             if (!calendarMembership
                 || !this.calendarPolicy.userCanAddEventToCalendar(calendarMembership)) {
@@ -133,23 +132,23 @@ class EventController {
         // Create and save new Event
         const createdEvent = await this.eventRepository.createEvent(
             new Event({
+                color: eventColor,
+                description: eventDescription,
+                endTime: endTime,
+                location: eventLocation,
                 name: eventName,
                 startTime: startTime,
-                endTime: endTime,
                 type: eventType,
                 visibility: eventVisibility,
-                description: eventDescription,
-                location: eventLocation,
-                color: eventColor
             }),
             [{
-                user: requestingUser,
                 role: EventAttendeeRole.Admin,
-                status: EventAttendeeStatus.Going
+                status: EventAttendeeStatus.Going,
+                user: requestingUser,
             }],
             calendar
                 ? { calendar: calendar }
-                : undefined
+                : undefined,
         );
 
         // Invite all Calendar members to the Event
@@ -159,9 +158,9 @@ class EventController {
 
             // Create and save invitations
             const attendees = calendarMembers.map(cm => ({
-                user: cm.member!,
                 role: calendarMemberRoleToEventAttendeeRole(cm.role),
-                status: EventAttendeeStatus.Invited
+                status: EventAttendeeStatus.Invited,
+                user: cm.member!,
             }));
             const eventAttendees = await this.eventRepository.addUsersToEvent(createdEvent, attendees);
 
@@ -170,10 +169,10 @@ class EventController {
         }
 
         res.status(201).json({
+            event: this.eventView.formatEventWithAttendeesAndCalendars(createdEvent),
             message: "Event created",
-            event: this.eventView.formatEventWithAttendeesAndCalendars(createdEvent)
         });
-    };
+    }
 
     public readonly getAllEvents = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
@@ -245,18 +244,18 @@ class EventController {
             {
                 afterDate: afterDate,
                 beforeDate: beforeDate,
-                onlyCalendarIds: onlyCalendarIds,
                 exceptCalendarIds: exceptCalendarIds,
+                onlyCalendarIds: onlyCalendarIds,
                 // We made sure that no statuses are undefined previously
-                onlyStatuses: <EventAttendeeStatus[] | undefined>onlyStatuses
-            }
+                onlyStatuses: <EventAttendeeStatus[] | undefined> onlyStatuses,
+            },
         );
 
         res.status(200).json({
+            events: eventStatuses.map(this.eventView.formatEventWithStatusAndCalendars),
             message: "OK",
-            events: eventStatuses.map(this.eventView.formatEventWithStatusAndCalendars)
         });
-    };
+    }
 
     public readonly getEventInfo = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
@@ -283,10 +282,10 @@ class EventController {
         }
 
         res.status(200).json({
+            event: this.eventView.formatEventWithAttendeesAndCalendars(event),
             message: "OK",
-            event: this.eventView.formatEventWithAttendeesAndCalendars(event)
         });
-    };
+    }
 
     public readonly uploadImage = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
@@ -313,9 +312,9 @@ class EventController {
         this.eventImageStorageService.storeImage(req.file.path, req.file.mimetype, eventId);
 
         res.status(200).json({
-            message: "Image uploaded"
+            message: "Image uploaded",
         });
-    };
+    }
 
     public readonly getImage = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
@@ -344,12 +343,9 @@ class EventController {
         // Retrieve image
         const imagePath = this.eventImageStorageService.getImageOrDefault(
             event.id,
-            this.eventImageDefault
+            this.eventImageDefault,
         );
 
         res.status(200).sendFile(imagePath);
-    };
+    }
 }
-
-
-export default EventController;

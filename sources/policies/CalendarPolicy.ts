@@ -1,29 +1,28 @@
-import CalendarMember from "../models/entities/CalendarMember";
+import { CalendarMember } from "../models/entities/CalendarMember";
 
-import CalendarMemberRole from "../core/enums/CalendarMemberRole";
+import { CalendarMemberRole } from "../core/enums/CalendarMemberRole";
 
-
-class CalendarPolicy {
+export class CalendarPolicy {
 
     public readonly userCanReadCalendar = (_calendarMembership: CalendarMember): boolean => {
         return true; // Always true since calendarMembership exists
-    };
+    }
 
     public readonly userCanEditCalendarMetadata = (calendarMembership: CalendarMember): boolean => {
         return CalendarPolicy.memberIsAdmin(calendarMembership);
-    };
+    }
 
     public readonly userCanAddEventToCalendar = (calendarMembership: CalendarMember): boolean => {
         return CalendarPolicy.memberIsAtLeastActor(calendarMembership);
-    };
+    }
 
     public readonly userCanRemoveEventFromCalendar = (calendarMembership: CalendarMember): boolean => {
         return CalendarPolicy.memberIsAtLeastActor(calendarMembership);
-    };
+    }
 
     public readonly userCanDeleteCalendar = (calendarMembership: CalendarMember): boolean => {
         return CalendarPolicy.memberIsAdmin(calendarMembership);
-    };
+    }
 
     //
     // Helpers
@@ -41,6 +40,3 @@ class CalendarPolicy {
             );
     }
 }
-
-
-export default CalendarPolicy;

@@ -1,15 +1,14 @@
 import { Router } from "express";
 import Multer from "multer";
 
-import ApiEndpointController from "./controllers/ApiEndpointController";
-import AuthLocalController from "./controllers/AuthLocalController";
-import CalendarController from "./controllers/CalendarController";
-import EventController from "./controllers/EventController";
-import UserController from "./controllers/UserController";
+import { ApiEndpointController } from "./controllers/ApiEndpointController";
+import { AuthLocalController } from "./controllers/AuthLocalController";
+import { CalendarController } from "./controllers/CalendarController";
+import { EventController } from "./controllers/EventController";
+import { UserController } from "./controllers/UserController";
 
 import { AuthenticatedOnlyMiddleware } from "./middleware/authenticatedOnlyMiddleware";
 import { asyncHandler } from "./middleware/utils/asyncHandler";
-
 
 export function createRouter(
     // Controllers
@@ -18,10 +17,9 @@ export function createRouter(
     calendarController: CalendarController,
     eventController: EventController,
     userController: UserController,
-
     // Middleware
     authenticatedOnlyMiddleware: AuthenticatedOnlyMiddleware,
-    imageUploadMiddleware: Multer.Instance
+    imageUploadMiddleware: Multer.Instance,
 ): Router {
     const router = Router();
 
@@ -30,7 +28,7 @@ export function createRouter(
     //
     router.get(
         "/",
-        apiEndpointController.endpoint
+        apiEndpointController.endpoint,
     );
 
     //
@@ -38,15 +36,15 @@ export function createRouter(
     //
     router.post(
         "/auth/local/register",
-        asyncHandler(authLocalController.registerUser)
+        asyncHandler(authLocalController.registerUser),
     );
     router.post(
         "/auth/local/login",
-        asyncHandler(authLocalController.authenticateUser)
+        asyncHandler(authLocalController.authenticateUser),
     );
     router.get(
         "/auth/local/validate-email/:uuid",
-        asyncHandler(authLocalController.validateEmail)
+        asyncHandler(authLocalController.validateEmail),
     );
 
     //
@@ -55,32 +53,32 @@ export function createRouter(
     router.get(
         "/users/me",
         asyncHandler(authenticatedOnlyMiddleware),
-        userController.getMyInfo
+        userController.getMyInfo,
     );
     router.put(
         "/users/me",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(userController.updateMyInfo)
+        asyncHandler(userController.updateMyInfo),
     );
     router.delete(
         "/users/me",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(userController.deleteUser)
+        asyncHandler(userController.deleteUser),
     );
     router.put(
         "/users/me/images/profile",
         asyncHandler(authenticatedOnlyMiddleware),
         imageUploadMiddleware.single("image"),
-        userController.uploadImage
+        userController.uploadImage,
     );
     router.put(
         "/users/me/timezone",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(userController.updateTimezone)
+        asyncHandler(userController.updateTimezone),
     );
     router.get(
         "/users/:userId/images/profile",
-        asyncHandler(userController.getUserImage)
+        asyncHandler(userController.getUserImage),
     );
 
     //
@@ -89,48 +87,48 @@ export function createRouter(
     router.post(
         "/calendars",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(calendarController.createCalendar)
+        asyncHandler(calendarController.createCalendar),
     );
     router.get(
         "/calendars",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(calendarController.getAllCalendarsOfRequestingUser)
+        asyncHandler(calendarController.getAllCalendarsOfRequestingUser),
     );
     router.get(
         "/calendars/:calendarId",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(calendarController.getCalendarInfo)
+        asyncHandler(calendarController.getCalendarInfo),
     );
     router.put(
         "/calendars/:calendarId",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(calendarController.editCalendarInfo)
+        asyncHandler(calendarController.editCalendarInfo),
     );
     router.delete(
         "/calendars/:calendarId",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(calendarController.deleteCalendar)
+        asyncHandler(calendarController.deleteCalendar),
     );
     router.put(
         "/calendars/:calendarId/images/icon",
         asyncHandler(authenticatedOnlyMiddleware),
         imageUploadMiddleware.single("image"),
-        asyncHandler(calendarController.uploadImage)
+        asyncHandler(calendarController.uploadImage),
     );
     router.get(
         "/calendars/:calendarId/images/icon",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(calendarController.getImage)
+        asyncHandler(calendarController.getImage),
     );
     router.post(
         "/calendars/:calendarId/events",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(calendarController.addEventToCalendar)
+        asyncHandler(calendarController.addEventToCalendar),
     );
     router.delete(
         "/calendars/:calendarId/events/:eventId",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(calendarController.removeEventFromCalendar)
+        asyncHandler(calendarController.removeEventFromCalendar),
     );
 
     //
@@ -139,28 +137,28 @@ export function createRouter(
     router.post(
         "/events",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(eventController.createEvent)
+        asyncHandler(eventController.createEvent),
     );
     router.get(
         "/events",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(eventController.getAllEvents)
+        asyncHandler(eventController.getAllEvents),
     );
     router.get(
         "/events/:eventId",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(eventController.getEventInfo)
-    )
+        asyncHandler(eventController.getEventInfo),
+    );
     router.put(
         "/events/:eventId/images/icon",
         asyncHandler(authenticatedOnlyMiddleware),
         imageUploadMiddleware.single("image"),
-        asyncHandler(eventController.uploadImage)
+        asyncHandler(eventController.uploadImage),
     );
     router.get(
         "/events/:eventId/images/icon",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(eventController.getImage)
+        asyncHandler(eventController.getImage),
     );
 
     return router;

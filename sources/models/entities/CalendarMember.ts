@@ -1,13 +1,12 @@
-import { Entity, PrimaryColumn, Index, Column } from "typeorm";
+import { Column, Entity, Index, PrimaryColumn } from "typeorm";
 
-import CalendarMemberRole from "../../core/enums/CalendarMemberRole";
+import { CalendarMemberRole } from "../../core/enums/CalendarMemberRole";
 
-import Calendar from "./Calendar";
-import User from "./User";
-
+import { Calendar } from "./Calendar";
+import { User } from "./User";
 
 @Entity("calendar_members")
-class CalendarMember {
+export class CalendarMember {
 
     private static readonly DEFAULT_ROLE: CalendarMemberRole = CalendarMemberRole.Admin;
 
@@ -42,8 +41,5 @@ type CalendarMemberData = {
     userId: number,
     calendarId: number,
     role: CalendarMemberRole,
-    invitationConfirmed: boolean
+    invitationConfirmed: boolean,
 };
-
-
-export default CalendarMember;

@@ -1,9 +1,8 @@
 import { Connection } from "typeorm";
 
-import PendingUser from "./entities/PendingUser";
+import { PendingUser } from "./entities/PendingUser";
 
-
-class PendingUserRepository {
+export class PendingUserRepository {
 
     private readonly conn: Connection;
 
@@ -15,26 +14,23 @@ class PendingUserRepository {
         return this.conn
             .getRepository(PendingUser)
             .save(user);
-    };
+    }
 
     public readonly getPendingUserByEmail = async (email: string): Promise<PendingUser | undefined> => {
         return this.conn
             .getRepository(PendingUser)
             .findOne({ where: { email: email } });
-    };
+    }
 
     public readonly getPendingUserByUuid = async (uuid: string): Promise<PendingUser | undefined> => {
         return this.conn
             .getRepository(PendingUser)
             .findOne({ where: { uuid: uuid } });
-    };
+    }
 
     public readonly deletePendingUserById = async (id: number): Promise<void> => {
         this.conn
             .getRepository(PendingUser)
             .delete(id);
-    };
+    }
 }
-
-
-export default PendingUserRepository;

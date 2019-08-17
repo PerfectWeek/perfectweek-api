@@ -1,35 +1,34 @@
-import CalendarEntry from "../models/entities/CalendarEntry";
-import Event from "../models/entities/Event";
-import EventAttendee from "../models/entities/EventAttendee";
+import { CalendarEntry } from "../models/entities/CalendarEntry";
+import { Event } from "../models/entities/Event";
+import { EventAttendee } from "../models/entities/EventAttendee";
 
-
-class EventView {
+export class EventView {
 
     public readonly formatEvent = (event: Event): any => {
         return {
-            id: event.id,
-            name: event.name,
+            color: event.color,
             description: event.description,
-            location: event.location,
-            start_time: event.startTime,
             end_time: event.endTime,
+            id: event.id,
+            location: event.location,
+            name: event.name,
+            start_time: event.startTime,
             type: event.type,
             visibility: event.visibility,
-            color: event.color
         };
-    };
+    }
 
     public readonly formatEventWithStatus = (
         event: Event,
-        status: EventAttendee
+        status: EventAttendee,
     ): any => {
         return {
             // Event
             ...this.formatEvent(event),
             // Status
-            ...EventView.formatAttendeeStatus(status)
+            ...EventView.formatAttendeeStatus(status),
         };
-    };
+    }
 
     public readonly formatEventAttendee = (status: EventAttendee): any => {
         if (!status.attendee) {
@@ -41,8 +40,8 @@ class EventView {
             id: status.attendee.id,
             name: status.attendee.name,
             // Status
-            ...EventView.formatAttendeeStatus(status)
-        }
+            ...EventView.formatAttendeeStatus(status),
+        };
     }
 
     public readonly formatEventWithAttendees = (event: Event): any => {
@@ -54,9 +53,9 @@ class EventView {
             // Event
             ...this.formatEvent(event),
             // Attendees
-            attendees: event.attendees.map(this.formatEventAttendee)
-        }
-    };
+            attendees: event.attendees.map(this.formatEventAttendee),
+        };
+    }
 
     public readonly formatEventWithStatusAndCalendars = (eventStatus: EventAttendee): any => {
         if (!eventStatus.event) {
@@ -70,9 +69,9 @@ class EventView {
             // Event
             ...this.formatEventWithStatus(eventStatus.event, eventStatus),
             // Calendars
-            owning_calendars: eventStatus.event.owningCalendars.map(EventView.formatOwningCalendar)
-        }
-    };
+            owning_calendars: eventStatus.event.owningCalendars.map(EventView.formatOwningCalendar),
+        };
+    }
 
     public readonly formatEventWithAttendeesAndCalendars = (event: Event): any => {
         if (!event.owningCalendars) {
@@ -83,16 +82,16 @@ class EventView {
             // Event & Attendees
             ...this.formatEventWithAttendees(event),
             // Calendars
-            owning_calendars: event.owningCalendars.map(EventView.formatOwningCalendar)
-        }
-    };
+            owning_calendars: event.owningCalendars.map(EventView.formatOwningCalendar),
+        };
+    }
 
     private static formatAttendeeStatus(status: EventAttendee): any {
         return {
             role: status.role,
-            status: status.status
+            status: status.status,
         };
-    };
+    }
 
     private static formatOwningCalendar(calendarEntry: CalendarEntry): any {
         if (!calendarEntry.calendar) {
@@ -100,12 +99,9 @@ class EventView {
         }
 
         return {
+            color: calendarEntry.calendar.color,
             id: calendarEntry.calendar.id,
             name: calendarEntry.calendar.name,
-            color: calendarEntry.calendar.color
         };
     }
 }
-
-
-export default EventView;

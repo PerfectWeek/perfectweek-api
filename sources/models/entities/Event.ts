@@ -1,13 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
-import EventVisibility from "../../core/enums/EventVisibility";
+import { EventVisibility } from "../../core/enums/EventVisibility";
 
-import CalendarEntry from "./CalendarEntry";
-import EventAttendee from "./EventAttendee";
-
+import { CalendarEntry } from "./CalendarEntry";
+import { EventAttendee } from "./EventAttendee";
 
 @Entity("events")
-class Event {
+export class Event {
 
     private static readonly DEFAULT_VISIBILITY: EventVisibility = EventVisibility.Private;
     private static readonly DEFAULT_COLOR: string = "#5abc95";
@@ -66,8 +65,5 @@ type EventData = {
     type: string,
     location?: string,
     visibility: EventVisibility,
-    color: string
+    color: string,
 };
-
-
-export default Event;

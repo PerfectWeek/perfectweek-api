@@ -1,9 +1,8 @@
-enum EventAttendeeRole {
+export enum EventAttendeeRole {
     Admin = "admin",
     Actor = "actor",
-    Spectator = "spectator"
-};
-
+    Spectator = "spectator",
+}
 
 export function eventAttendeeRoleFromString(role: string): EventAttendeeRole | undefined {
     switch (role) {
@@ -13,6 +12,3 @@ export function eventAttendeeRoleFromString(role: string): EventAttendeeRole | u
         default: return undefined;
     }
 }
-
-
-export default EventAttendeeRole;

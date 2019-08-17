@@ -1,23 +1,19 @@
-import User from "../models/entities/User";
+import { User } from "../models/entities/User";
 
-
-class UserView {
+export class UserView {
 
     public readonly formatPrivateUser = (user: User): any => {
         return {
+            email: user.email,
             id: user.id,
             name: user.name,
-            email: user.email
         };
     }
 
     public readonly formatPublicUser = (user: User): any => {
         return {
             id: user.id,
-            name: user.name
-        }
-    };
+            name: user.name,
+        };
+    }
 }
-
-
-export default UserView;
