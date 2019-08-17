@@ -36,6 +36,8 @@ import { UserController } from "./controllers/UserController";
 import * as AuthenticatedOnlyMiddleware from "./middleware/authenticatedOnlyMiddleware";
 import * as ImageUploadMiddleware from "./middleware/imageUploadMiddleware";
 
+const CURRENT_DIRECTORY: string = __dirname;
+
 function main(): void {
     const dbConfig = DbConfig.load("../ormconfig.js");
 
@@ -49,23 +51,29 @@ function main(): void {
         throw new Error('Missing environment variable "JWT_SECRET_KEY"');
     }
 
+    const ASSETS_ROOT_DIR = process.env.ASSETS_ROOT_DIR;
+    if (!ASSETS_ROOT_DIR) {
+        throw new Error('Missing environment variable "ASSETS_ROOT_DIR"');
+    }
+
     const ASSETS_INFO: AssetsInfo = {
+        MULTER_UPLOAD_DIR: `${ASSETS_ROOT_DIR}/uploads/images`,
         calendars: {
             icon: {
-                baseDir: "/assets/images/calendars/icon",
-                default: "/app/sources/assets/images/calendar_icon_default.jpg",
+                baseDir: `${ASSETS_ROOT_DIR}/images/calendars/icon`,
+                default: `${CURRENT_DIRECTORY}/assets/images/calendar_icon_default.jpg`,
             },
         },
         events: {
             image: {
-                baseDir: "/assets/images/events/image",
-                default: "/app/sources/assets/images/event_image_default.jpg",
+                baseDir: `${ASSETS_ROOT_DIR}/images/events/image`,
+                default: `${CURRENT_DIRECTORY}/assets/images/event_image_default.jpg`,
             },
         },
         users: {
             profile: {
-                baseDir: "/assets/images/users/profile",
-                default: "/app/sources/assets/images/user_profile_default.jpg",
+                baseDir: `${ASSETS_ROOT_DIR}/images/users/profile`,
+                default: `${CURRENT_DIRECTORY}/assets/images/user_profile_default.jpg`,
             },
         },
     };
@@ -155,7 +163,7 @@ function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: Assets
         userRepository,
         jwtService,
     );
-    const imageUploadMiddleware = ImageUploadMiddleware.generateImageUploadMiddleware("/assets/uploads/images");
+    const imageUploadMiddleware = ImageUploadMiddleware.generateImageUploadMiddleware(assetsInfo.MULTER_UPLOAD_DIR);
 
     // Create Router
     const router = Router.createRouter(
@@ -175,6 +183,7 @@ function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: Assets
 }
 
 type AssetsInfo = {
+    MULTER_UPLOAD_DIR: string,
     calendars: {
         icon: {
             baseDir: string,
