@@ -287,6 +287,84 @@ export class EventController {
         });
     }
 
+    public readonly editEventInfo = async (req: Request, res: Response) => {
+        const requestingUser = getRequestingUser(req);
+
+        // Validate eventId
+        const eventId: number = parseInt(req.params.eventId, 10);
+        if (isNaN(eventId)) {
+            throw Boom.notFound(`Event id "${req.params.eventId}" is invalid`);
+        }
+
+        // Validate event parameter
+        const eventName = trim(req.body.name);
+        const eventStart = req.body.start_time;
+        const eventEnd = req.body.end_time;
+        const eventType = req.body.type;
+        const eventVisibility = req.body.visibility;
+        const eventDescription = req.body.description;
+        const eventLocation = req.body.location;
+        const eventColor = req.body.color;
+        if (!eventName
+            || !eventStart
+            || !eventEnd
+            || !eventType
+            || !eventVisibility
+            || !eventColor
+        ) {
+            throw Boom.badRequest("Missing fields for Event");
+        }
+
+        // Validate Event dates
+        const startTime = new Date(eventStart);
+        const endTime = new Date(eventEnd);
+        if (startTime > endTime) {
+            throw Boom.badRequest("Start date can't be after end date");
+        }
+        // Validate Event visibility
+        const visibility = eventVisibilityFromString(eventVisibility);
+        if (!visibility) {
+            throw Boom.badRequest("Invalid visibility");
+        }
+
+        // Make sure User can edit this Event
+        const eventStatus = await this.eventRepository.getEventRelationship(
+            eventId,
+            requestingUser.id,
+            { joinEvent: true },
+        );
+        if (!eventStatus
+            || !this.eventPolicy.userCanEditEvent(eventStatus)) {
+            throw Boom.notFound("You cannot access this Event");
+        }
+
+        if (eventStatus.event === undefined) {
+            throw new Error(`"event" property missing in EventAttendee`);
+        }
+
+        // Edit Event
+        const event = eventStatus.event;
+        event.name = eventName;
+        event.startTime = eventStart;
+        event.endTime = eventEnd;
+        event.type = eventType;
+        event.visibility = eventVisibility;
+        event.description = eventDescription;
+        event.location = eventLocation;
+        event.color = eventColor;
+
+        // Save Event
+        const editedEvent = await this.eventRepository.updateEvent(event);
+
+        res.status(200).json({
+            event: this.eventView.formatEvent(editedEvent),
+            message: "Event edited",
+        });
+    }
+
+    // public readonly deleteEvent = async (req: Request, res: Response) => {
+    // }
+
     public readonly uploadImage = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
 
