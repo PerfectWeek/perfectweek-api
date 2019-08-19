@@ -362,8 +362,29 @@ export class EventController {
         });
     }
 
-    // public readonly deleteEvent = async (req: Request, res: Response) => {
-    // }
+    public readonly deleteEvent = async (req: Request, res: Response) => {
+        const requestingUser = getRequestingUser(req);
+
+        // Validate eventId
+        const eventId: number = parseInt(req.params.eventId, 10);
+        if (isNaN(eventId)) {
+            throw Boom.notFound(`Event id "${req.params.eventId}" is invalid`);
+        }
+
+        // Make sure User has enough rights to remove this Event
+        const eventStatus = await this.eventRepository.getEventRelationship(eventId, requestingUser.id);
+        if (!eventStatus
+            || !this.eventPolicy.userCanDeleteEvent(eventStatus)) {
+            throw Boom.notFound("You cannot access this Event");
+        }
+
+        // Delete Event
+        await this.eventRepository.deleteEvent(eventId);
+
+        res.status(200).json({
+            message: "Event deleted",
+        });
+    }
 
     public readonly uploadImage = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);

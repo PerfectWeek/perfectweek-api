@@ -65,6 +65,17 @@ export class EventRepository {
         return this.conn.manager.save(event);
     }
 
+    public readonly deleteEvent = async (eventId: number): Promise<void> => {
+        await this.conn.transaction(async manager => {
+            // Remove Event from all Calendars
+            await manager.delete(CalendarEntry, { eventId: eventId });
+            // Remove all attendees from Event
+            await manager.delete(EventAttendee, { eventId: eventId });
+            // Delete Event
+            await manager.delete(Event, { id: eventId });
+        });
+    }
+
     public readonly getEventRelationship = async (
         eventId: number,
         userId: number,
