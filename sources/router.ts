@@ -150,6 +150,16 @@ export function createRouter(
         asyncHandler(eventController.getEventInfo),
     );
     router.put(
+        "/events/:eventId",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(eventController.editEventInfo),
+    );
+    router.delete(
+        "/events/:eventId",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(eventController.deleteEvent),
+    );
+    router.put(
         "/events/:eventId/images/icon",
         asyncHandler(authenticatedOnlyMiddleware),
         imageUploadMiddleware.single("image"),
