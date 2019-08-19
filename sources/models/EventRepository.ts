@@ -61,13 +61,28 @@ export class EventRepository {
         return createdEvent;
     }
 
+    public readonly updateEvent = async (event: Event): Promise<Event> => {
+        return this.conn.manager.save(event);
+    }
+
     public readonly getEventRelationship = async (
         eventId: number,
         userId: number,
+        options?: { joinEvent: boolean },
     ): Promise<EventAttendee | undefined> => {
-        return this.conn
+        let query = this.conn
             .getRepository(EventAttendee)
-            .findOne({ where: { eventId: eventId, userId: userId } });
+            .createQueryBuilder("ea")
+            .where("ea.event_id = :eventId", { eventId: eventId })
+            .andWhere("ea.user_id = :userId", { userId: userId });
+
+        if (options !== undefined) {
+            if (options.joinEvent) {
+                query = query.innerJoinAndMapOne("ea.event", "events", "e", "ea.event_id = e.id");
+            }
+        }
+
+        return query.getOne();
     }
 
     public readonly getEventWithAttendees = async (eventId: number): Promise<Event | undefined> => {
@@ -164,6 +179,9 @@ export class EventRepository {
     }
 }
 
+//
+// Local types
+//
 type AttendeeOptions = {
     user: User,
     role: EventAttendeeRole,
