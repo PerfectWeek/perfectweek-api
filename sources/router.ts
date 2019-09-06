@@ -4,6 +4,8 @@ import Multer from "multer";
 import { ApiEndpointController } from "./controllers/ApiEndpointController";
 import { AuthLocalController } from "./controllers/AuthLocalController";
 import { CalendarController } from "./controllers/CalendarController";
+import { CalendarEventController } from "./controllers/CalendarEventController";
+import { CalendarImageController } from "./controllers/CalendarImageController";
 import { EventController } from "./controllers/EventController";
 import { UserController } from "./controllers/UserController";
 
@@ -15,6 +17,8 @@ export function createRouter(
     apiEndpointController: ApiEndpointController,
     authLocalController: AuthLocalController,
     calendarController: CalendarController,
+    calendarEventController: CalendarEventController,
+    calendarImageController: CalendarImageController,
     eventController: EventController,
     userController: UserController,
     // Middleware
@@ -92,43 +96,49 @@ export function createRouter(
     router.get(
         "/calendars",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(calendarController.getAllCalendarsOfRequestingUser),
+        asyncHandler(calendarController.getAllCalendars),
     );
     router.get(
         "/calendars/:calendarId",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(calendarController.getCalendarInfo),
+        asyncHandler(calendarController.getCalendar),
     );
     router.put(
         "/calendars/:calendarId",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(calendarController.editCalendarInfo),
+        asyncHandler(calendarController.editCalendar),
     );
     router.delete(
         "/calendars/:calendarId",
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(calendarController.deleteCalendar),
     );
-    router.put(
-        "/calendars/:calendarId/images/icon",
-        asyncHandler(authenticatedOnlyMiddleware),
-        imageUploadMiddleware.single("image"),
-        asyncHandler(calendarController.uploadImage),
-    );
-    router.get(
-        "/calendars/:calendarId/images/icon",
-        asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(calendarController.getImage),
-    );
+
+    // Calendar event
     router.post(
         "/calendars/:calendarId/events",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(calendarController.addEventToCalendar),
+        asyncHandler(calendarEventController.addEventToCalendar),
     );
     router.delete(
         "/calendars/:calendarId/events/:eventId",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(calendarController.removeEventFromCalendar),
+        asyncHandler(calendarEventController.removeEventFromCalendar),
+    );
+
+    //
+    // Calendar image
+    //
+    router.get(
+        "/calendars/:calendarId/images/icon",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(calendarImageController.uploadImage),
+    );
+    router.put(
+        "/calendars/:calendarId/images/icon",
+        asyncHandler(authenticatedOnlyMiddleware),
+        imageUploadMiddleware.single("image"),
+        asyncHandler(calendarImageController.getImage),
     );
 
     //
