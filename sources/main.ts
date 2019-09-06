@@ -173,7 +173,6 @@ function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: Assets
         calendarController,
         eventController,
         userController,
-
         // Middleware
         authenticatedOnlyMiddleware,
         imageUploadMiddleware,
