@@ -38,6 +38,10 @@ export function createRouter(
         "/",
         apiEndpointController.endpoint,
     );
+    router.get(
+        "/favicon.ico",
+        apiEndpointController.favicon,
+    );
 
     //
     // Auth (local)
