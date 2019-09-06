@@ -9,7 +9,7 @@ export class PasswordValidator {
         this.containsDigitRegex = /[0-9]/;
         this.containsLowercaseRegex = /[a-z]/;
         this.containsUppercaseRegex = /[A-Z]/;
-        this.containsSymbolRegex = /[!@#$%^&*(),.?"':;/\\{}|<>\-_+=~`]/;
+        this.containsSymbolRegex = /[!@#$%^&*(),.?"':;/\\{}|<>\-_+=~`\[\]]/;
     }
 
     public readonly validate = (password: string): boolean => {
