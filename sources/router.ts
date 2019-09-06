@@ -7,6 +7,7 @@ import { CalendarController } from "./controllers/CalendarController";
 import { CalendarEventController } from "./controllers/CalendarEventController";
 import { CalendarImageController } from "./controllers/CalendarImageController";
 import { EventController } from "./controllers/EventController";
+import { EventImageController } from "./controllers/EventImageController";
 import { UserController } from "./controllers/UserController";
 import { UserImageController } from "./controllers/UserImageController";
 
@@ -21,6 +22,7 @@ export function createRouter(
     calendarEventController: CalendarEventController,
     calendarImageController: CalendarImageController,
     eventController: EventController,
+    eventImageController: EventImageController,
     userController: UserController,
     userImageController: UserImageController,
     // Middleware
@@ -163,28 +165,32 @@ export function createRouter(
     router.get(
         "/events/:eventId",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(eventController.getEventInfo),
+        asyncHandler(eventController.getEvent),
     );
     router.put(
         "/events/:eventId",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(eventController.editEventInfo),
+        asyncHandler(eventController.updateEvent),
     );
     router.delete(
         "/events/:eventId",
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(eventController.deleteEvent),
     );
+
+    //
+    // Event image
+    //
     router.put(
         "/events/:eventId/images/icon",
         asyncHandler(authenticatedOnlyMiddleware),
         imageUploadMiddleware.single("image"),
-        asyncHandler(eventController.uploadImage),
+        asyncHandler(eventImageController.uploadImage),
     );
     router.get(
         "/events/:eventId/images/icon",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(eventController.getImage),
+        asyncHandler(eventImageController.getImage),
     );
 
     return router;
