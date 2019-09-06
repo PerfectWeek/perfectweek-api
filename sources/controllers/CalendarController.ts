@@ -2,18 +2,12 @@ import Boom from "@hapi/boom";
 import { Request, Response } from "express";
 
 import { CalendarMemberRole } from "../core/enums/CalendarMemberRole";
-import { EventAttendeeRole } from "../core/enums/EventAttendeeRole";
-import { EventAttendeeStatus } from "../core/enums/EventAttendeeStatus";
 
 import { Calendar } from "../models/entities/Calendar";
 
 import { CalendarRepository } from "../models/CalendarRepository";
-import { EventRepository } from "../models/EventRepository";
 
 import { CalendarPolicy } from "../policies/CalendarPolicy";
-import { EventPolicy } from "../policies/EventPolicy";
-
-import { ImageStorageService } from "../services/ImageStorageService";
 
 import { CalendarView } from "../views/CalendarView";
 
@@ -25,42 +19,22 @@ import { CalendarInvitationStatus, calendarInvitationStatusFromString } from "./
 export class CalendarController {
 
     private readonly calendarRepository: CalendarRepository;
-    private readonly eventRepository: EventRepository;
 
     private readonly calendarPolicy: CalendarPolicy;
-    private readonly eventPolicy: EventPolicy;
-
-    private readonly calendarIconImageStorageService: ImageStorageService;
 
     private readonly calendarView: CalendarView;
-
-    private readonly calendarIconImageDefault: string;
 
     constructor(
         // Repositories
         calendarRepository: CalendarRepository,
-        eventRepository: EventRepository,
         // Policies
         calendarPolicy: CalendarPolicy,
-        eventPolicy: EventPolicy,
-        // Services,
-        calendarIconImageStorageService: ImageStorageService,
         // Views
         calendarView: CalendarView,
-        // Images
-        calendarIconImageDefault: string,
     ) {
         this.calendarRepository = calendarRepository;
-        this.eventRepository = eventRepository;
-
         this.calendarPolicy = calendarPolicy;
-        this.eventPolicy = eventPolicy;
-
-        this.calendarIconImageStorageService = calendarIconImageStorageService;
-
         this.calendarView = calendarView;
-
-        this.calendarIconImageDefault = calendarIconImageDefault;
     }
 
     public readonly createCalendar = async (req: Request, res: Response) => {
@@ -99,7 +73,7 @@ export class CalendarController {
         });
     }
 
-    public readonly getCalendarInfo = async (req: Request, res: Response) => {
+    public readonly getCalendar = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
 
         // Validate request's parameters
@@ -127,7 +101,32 @@ export class CalendarController {
         });
     }
 
-    public readonly editCalendarInfo = async (req: Request, res: Response) => {
+    public readonly getAllCalendars = async (req: Request, res: Response) => {
+        const requestingUser = getRequestingUser(req);
+
+        // Validate request's parameters
+        const invitationStatusQuery: string = req.query.invitation_status;
+
+        const options: { invitationConfirmed?: boolean } = {};
+        // Process query option: "invitation_status"
+        if (invitationStatusQuery !== undefined) {
+            const invitationStatus = calendarInvitationStatusFromString(invitationStatusQuery);
+            if (invitationStatus === undefined) {
+                throw Boom.badRequest(`Invalid invitation_status: "${invitationStatusQuery}"`);
+            }
+            options.invitationConfirmed = invitationStatus === CalendarInvitationStatus.Confirmed;
+        }
+
+        // Retrieve Calendars
+        const calendarMembers = await this.calendarRepository.getAllCalendarsForUserId(requestingUser.id, options);
+
+        res.status(200).json({
+            calendars: calendarMembers.map(this.calendarView.formatCalendarFromMembership),
+            message: "OK",
+        });
+    }
+
+    public readonly editCalendar = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
 
         // Validate request's parameters
@@ -165,123 +164,6 @@ export class CalendarController {
         });
     }
 
-    public readonly getAllCalendarsOfRequestingUser = async (req: Request, res: Response) => {
-        const requestingUser = getRequestingUser(req);
-
-        // Validate request's parameters
-        const invitationStatusQuery: string = req.query.invitation_status;
-
-        const options: { invitationConfirmed?: boolean } = {};
-        // Process query option: "invitation_status"
-        if (invitationStatusQuery !== undefined) {
-            const invitationStatus = calendarInvitationStatusFromString(invitationStatusQuery);
-            if (invitationStatus === undefined) {
-                throw Boom.badRequest(`Invalid invitation_status: "${invitationStatusQuery}"`);
-            }
-            options.invitationConfirmed = invitationStatus === CalendarInvitationStatus.Confirmed;
-        }
-
-        // Retrieve Calendars
-        const calendarMembers = await this.calendarRepository.getAllCalendarsForUserId(requestingUser.id, options);
-
-        res.status(200).json({
-            calendars: calendarMembers.map(this.calendarView.formatCalendarFromMembership),
-            message: "OK",
-        });
-    }
-
-    public readonly addEventToCalendar = async (req: Request, res: Response) => {
-        const requestingUser = getRequestingUser(req);
-
-        // Validate request's parameters
-        const calendarId: number = parseInt(req.params.calendarId, 10);
-        if (isNaN(calendarId)) {
-            throw Boom.notFound(`Calendar id "${req.params.calendarId}" is invalid`);
-        }
-        const eventId: number = parseInt(req.body.event_id, 10);
-        if (isNaN(eventId)) {
-            throw Boom.badRequest("Missing valid event_id");
-        }
-
-        // Make sure User can add Event to this Calendar
-        const calendarMembership = await this.calendarRepository.getCalendarMemberShip(calendarId, requestingUser.id);
-        if (!calendarMembership
-            || !this.calendarPolicy.userCanAddEventToCalendar(calendarMembership)) {
-            throw Boom.unauthorized("You cannot add Event to this Calendar");
-        }
-
-        // Retrieve Calendar with members
-        const calendar = await this.calendarRepository.getCalendarWithMembers(calendarId);
-        if (!calendar) {
-            throw Boom.notFound("Calendar not found");
-        }
-
-        // Make sure Event can be added to Calendars
-        const event = await this.eventRepository.getEventWithAttendees(eventId);
-        if (!event
-            || !this.eventPolicy.eventIsPublic(event)) {
-            throw Boom.unauthorized("You cannot add this Event to Calendars");
-        }
-
-        // Make sure Event is not already in Calendar
-        const alreadyExistingCalendarEntry = await this.calendarRepository.getCalendarEntry(calendarId, event.id);
-        if (alreadyExistingCalendarEntry) {
-            throw Boom.conflict("This Event is already in this Calendar");
-        }
-
-        // Add Event to Calendar
-        await this.calendarRepository.addEventToCalendar(calendar, { event: event });
-
-        // Create new attendees
-        const existingAttendees = new Set<number>(event.attendees!.map(e => e.userId));
-        const newAttendees = calendar.members!
-            .filter(m => !existingAttendees.has(m.member!.id))
-            .map(m => ({
-                role: EventAttendeeRole.Spectator,
-                status: EventAttendeeStatus.Invited,
-                user: m.member!,
-            }));
-        await this.eventRepository.addUsersToEvent(event, newAttendees);
-
-        res.status(200).json({
-            message: "Event added to Calendar",
-        });
-    }
-
-    public readonly removeEventFromCalendar = async (req: Request, res: Response) => {
-        const requestingUser = getRequestingUser(req);
-
-        // Validate request's parameters
-        const calendarId: number = parseInt(req.params.calendarId, 10);
-        if (isNaN(calendarId)) {
-            throw Boom.notFound(`Calendar id "${req.params.calendarId}" is invalid`);
-        }
-        const eventId: number = parseInt(req.params.eventId, 10);
-        if (isNaN(eventId)) {
-            throw Boom.notFound(`Event id "${req.params.eventId}" is invalid`);
-        }
-
-        // Make sure User can remove Event from this Calendar
-        const calendarMembership = await this.calendarRepository.getCalendarMemberShip(calendarId, requestingUser.id);
-        if (!calendarMembership
-            || !this.calendarPolicy.userCanRemoveEventFromCalendar(calendarMembership)) {
-            throw Boom.unauthorized("You cannot remove Event from this Calendar");
-        }
-
-        // Check if Event is in this Calendar
-        const calendarEntry = await this.calendarRepository.getCalendarEntry(calendarId, eventId);
-        if (!calendarEntry) {
-            throw Boom.notFound("This Event is not part of this Calendar");
-        }
-
-        // Remove Event from Calendar
-        await this.calendarRepository.removeEventFromCalendar(calendarEntry.calendarId, calendarEntry.eventId);
-
-        res.status(200).json({
-            message: "Event removed from Calendar",
-        });
-    }
-
     public readonly deleteCalendar = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
 
@@ -310,58 +192,5 @@ export class CalendarController {
         res.status(200).json({
             message: "Calendar deleted",
         });
-    }
-
-    public readonly uploadImage = async (req: Request, res: Response) => {
-        const requestingUser = getRequestingUser(req);
-
-        // Validate request's parameters
-        const calendarId: number = parseInt(req.params.calendarId, 10);
-        if (isNaN(calendarId)) {
-            throw Boom.notFound(`Calendar id "${req.params.calendarId}" is invalid`);
-        }
-
-        // Make sure an image has been uploaded
-        if (!req.file) {
-            throw Boom.badRequest("Missing image argument");
-        }
-
-        // Make sure User can edit Calendar
-        const calendarMembership = await this.calendarRepository.getCalendarMemberShip(calendarId, requestingUser.id);
-        if (!calendarMembership
-            || !this.calendarPolicy.userCanEditCalendarMetadata(calendarMembership)) {
-            throw Boom.unauthorized("You cannot access this Calendar");
-        }
-
-        // Store Calendar image
-        this.calendarIconImageStorageService.storeImage(req.file.path, req.file.mimetype, calendarId);
-
-        res.status(200).json({
-            message: "Image saved",
-        });
-    }
-
-    public readonly getImage = async (req: Request, res: Response) => {
-        const requestingUser = getRequestingUser(req);
-
-        // Validate request's parameters
-        const calendarId: number = parseInt(req.params.calendarId, 10);
-        if (isNaN(calendarId)) {
-            throw Boom.notFound(`Calendar id "${req.params.calendarId}" is invalid`);
-        }
-
-        // Make sure User can access Calendar
-        const calendarMembership = await this.calendarRepository.getCalendarMemberShip(calendarId, requestingUser.id);
-        if (!calendarMembership
-            || !this.calendarPolicy.userCanReadCalendar(calendarMembership)) {
-            throw Boom.unauthorized("You cannot access this Calendar");
-        }
-
-        const imagePath = this.calendarIconImageStorageService.getImageOrDefault(
-            calendarMembership.calendarId,
-            this.calendarIconImageDefault,
-        );
-
-        res.status(200).sendFile(imagePath);
     }
 }

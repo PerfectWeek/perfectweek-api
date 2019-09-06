@@ -30,6 +30,8 @@ import { EventPolicy } from "./policies/EventPolicy";
 import { ApiEndpointController } from "./controllers/ApiEndpointController";
 import { AuthLocalController } from "./controllers/AuthLocalController";
 import { CalendarController } from "./controllers/CalendarController";
+import { CalendarEventController } from "./controllers/CalendarEventController";
+import { CalendarImageController } from "./controllers/CalendarImageController";
 import { EventController } from "./controllers/EventController";
 import { UserController } from "./controllers/UserController";
 
@@ -132,11 +134,19 @@ function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: Assets
     );
     const calendarController = new CalendarController(
         calendarRepository,
+        calendarPolicy,
+        calendarView,
+    );
+    const calendarEventController = new CalendarEventController(
+        calendarRepository,
         eventRepository,
         calendarPolicy,
         eventPolicy,
+    );
+    const calendarImageController = new CalendarImageController(
+        calendarRepository,
         calendarIconImageStorageService,
-        calendarView,
+        calendarPolicy,
         assetsInfo.calendars.icon.default,
     );
     const eventController = new EventController(
@@ -171,6 +181,8 @@ function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: Assets
         apiEndpointController,
         authLocalController,
         calendarController,
+        calendarEventController,
+        calendarImageController,
         eventController,
         userController,
         // Middleware
