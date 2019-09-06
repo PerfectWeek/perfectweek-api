@@ -8,6 +8,7 @@ import { CalendarEventController } from "./controllers/CalendarEventController";
 import { CalendarImageController } from "./controllers/CalendarImageController";
 import { EventController } from "./controllers/EventController";
 import { UserController } from "./controllers/UserController";
+import { UserImageController } from "./controllers/UserImageController";
 
 import { AuthenticatedOnlyMiddleware } from "./middleware/authenticatedOnlyMiddleware";
 import { asyncHandler } from "./middleware/utils/asyncHandler";
@@ -21,6 +22,7 @@ export function createRouter(
     calendarImageController: CalendarImageController,
     eventController: EventController,
     userController: UserController,
+    userImageController: UserImageController,
     // Middleware
     authenticatedOnlyMiddleware: AuthenticatedOnlyMiddleware,
     imageUploadMiddleware: Multer.Instance,
@@ -57,12 +59,12 @@ export function createRouter(
     router.get(
         "/users/me",
         asyncHandler(authenticatedOnlyMiddleware),
-        userController.getMyInfo,
+        userController.getUser,
     );
     router.put(
         "/users/me",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(userController.updateMyInfo),
+        asyncHandler(userController.updateUser),
     );
     router.delete(
         "/users/me",
@@ -70,19 +72,23 @@ export function createRouter(
         asyncHandler(userController.deleteUser),
     );
     router.put(
+        "/users/me/timezone",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(userController.updateUserTimezone),
+    );
+
+    //
+    // Users image
+    //
+    router.put(
         "/users/me/images/profile",
         asyncHandler(authenticatedOnlyMiddleware),
         imageUploadMiddleware.single("image"),
-        userController.uploadImage,
-    );
-    router.put(
-        "/users/me/timezone",
-        asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(userController.updateTimezone),
+        userImageController.uploadImage,
     );
     router.get(
         "/users/:userId/images/profile",
-        asyncHandler(userController.getUserImage),
+        asyncHandler(userImageController.getImage),
     );
 
     //

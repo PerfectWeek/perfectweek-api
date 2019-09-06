@@ -34,6 +34,7 @@ import { CalendarEventController } from "./controllers/CalendarEventController";
 import { CalendarImageController } from "./controllers/CalendarImageController";
 import { EventController } from "./controllers/EventController";
 import { UserController } from "./controllers/UserController";
+import { UserImageController } from "./controllers/UserImageController";
 
 import * as AuthenticatedOnlyMiddleware from "./middleware/authenticatedOnlyMiddleware";
 import * as ImageUploadMiddleware from "./middleware/imageUploadMiddleware";
@@ -161,10 +162,13 @@ function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: Assets
     );
     const userController = new UserController(
         userRepository,
-        userProfileImageStorageService,
-        userView,
         emailValidator,
         nameValidator,
+        userView,
+    );
+    const userImageController = new UserImageController(
+        userRepository,
+        userProfileImageStorageService,
         assetsInfo.users.profile.default,
     );
 
@@ -185,6 +189,7 @@ function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: Assets
         calendarImageController,
         eventController,
         userController,
+        userImageController,
         // Middleware
         authenticatedOnlyMiddleware,
         imageUploadMiddleware,
