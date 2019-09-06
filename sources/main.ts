@@ -33,6 +33,7 @@ import { CalendarController } from "./controllers/CalendarController";
 import { CalendarEventController } from "./controllers/CalendarEventController";
 import { CalendarImageController } from "./controllers/CalendarImageController";
 import { EventController } from "./controllers/EventController";
+import { EventImageController } from "./controllers/EventImageController";
 import { UserController } from "./controllers/UserController";
 import { UserImageController } from "./controllers/UserImageController";
 
@@ -156,8 +157,12 @@ function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: Assets
         calendarPolicy,
         eventPolicy,
         dateService,
-        eventImageStorageService,
         eventView,
+    );
+    const eventImageController = new EventImageController(
+        eventRepository,
+        eventImageStorageService,
+        eventPolicy,
         assetsInfo.events.image.default,
     );
     const userController = new UserController(
@@ -188,6 +193,7 @@ function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: Assets
         calendarEventController,
         calendarImageController,
         eventController,
+        eventImageController,
         userController,
         userImageController,
         // Middleware
