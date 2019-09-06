@@ -74,6 +74,9 @@ function main(): void {
                 default: `${CURRENT_DIRECTORY}/assets/images/event_image_default.jpg`,
             },
         },
+        favicon: {
+            image: `${CURRENT_DIRECTORY}/assets/favicon.ico`,
+        },
         users: {
             profile: {
                 baseDir: `${ASSETS_ROOT_DIR}/images/users/profile`,
@@ -124,7 +127,9 @@ function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: Assets
     const userView = new UserView();
 
     // Create Controllers
-    const apiEndpointController = new ApiEndpointController();
+    const apiEndpointController = new ApiEndpointController(
+        assetsInfo.favicon.image,
+    );
     const authLocalController = new AuthLocalController(
         pendingUserRepository,
         userRepository,
@@ -205,6 +210,9 @@ function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: Assets
 }
 
 type AssetsInfo = {
+    favicon: {
+        image: string,
+    },
     MULTER_UPLOAD_DIR: string,
     calendars: {
         icon: {
