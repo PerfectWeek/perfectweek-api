@@ -20,9 +20,9 @@ export class Calendar {
     public color: string;
 
     @Column({
-        default: BASE_TIME_SLOT_PREFERENCES,
-        name: "time_slot_preferences",
         type: "simple-json",
+        name: "time_slot_preferences",
+        default: BASE_TIME_SLOT_PREFERENCES,
     })
     public timeSlotPreferences: TimeSlotPreferences;
 

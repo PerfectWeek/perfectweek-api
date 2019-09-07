@@ -74,16 +74,16 @@ export class CalendarEventController {
         }
 
         // Add Event to Calendar
-        await this.calendarRepository.addEventToCalendar(calendar, { event: event });
+        await this.calendarRepository.addEventToCalendar(calendar, event);
 
         // Create new attendees
         const existingAttendees = new Set<number>(event.attendees!.map(e => e.userId));
         const newAttendees = calendar.members!
             .filter(m => !existingAttendees.has(m.member!.id))
             .map(m => ({
+                user: m.member!,
                 role: EventAttendeeRole.Spectator,
                 status: EventAttendeeStatus.Invited,
-                user: m.member!,
             }));
         await this.eventRepository.addUsersToEvent(event, newAttendees);
 
@@ -109,7 +109,7 @@ export class CalendarEventController {
         const calendarMembership = await this.calendarRepository.getCalendarMemberShip(calendarId, requestingUser.id);
         if (!calendarMembership
             || !this.calendarPolicy.userCanRemoveEventFromCalendar(calendarMembership)) {
-            throw Boom.unauthorized("You cannot remove Event from this Calendar");
+            throw Boom.unauthorized("You cannot remove Events from this Calendar");
         }
 
         // Check if Event is in this Calendar
