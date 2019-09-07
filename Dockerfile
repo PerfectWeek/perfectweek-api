@@ -1,10 +1,18 @@
 FROM benardg/node-bcrypt
 
-VOLUME /app
+# Set workdir
 WORKDIR /app
 
-EXPOSE 3000
+# Install node dependencies
+COPY package.json yarn.lock ./
+RUN yarn install
 
-CMD yarn install \
-    && yarn run typeorm migration:run \
-    && yarn run dev
+# Setup env
+ENV PORT 80
+ENV ASSETS_ROOT_DIR /assets
+
+# Copy source files
+COPY ./ ./
+
+# Startup command
+CMD yarn run start
