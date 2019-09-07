@@ -16,7 +16,9 @@ services:
       - 5432:5432
 
   api:
-    build: .
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
     volumes:
       - ./:/app
       - api_assets:/assets
