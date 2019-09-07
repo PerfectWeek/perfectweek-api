@@ -98,7 +98,6 @@ export class AuthLocalController {
             message: "User created",
             user: {
                 email: pendingUser.email,
-                id: pendingUser.id,
                 name: pendingUser.name,
             },
             uuid: pendingUser.uuid, // TODO: only in dev mode
@@ -152,6 +151,11 @@ export class AuthLocalController {
         res.status(200).json({
             message: "Success",
             token: userToken,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+            },
         });
     }
 }
