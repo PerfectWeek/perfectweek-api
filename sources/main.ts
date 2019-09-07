@@ -36,6 +36,7 @@ import { CalendarImageController } from "./controllers/CalendarImageController";
 import { CalendarMemberController } from "./controllers/CalendarMemberController";
 import { EventController } from "./controllers/EventController";
 import { EventImageController } from "./controllers/EventImageController";
+import { EventRelationshipController } from "./controllers/EventRelationshipController";
 import { UserController } from "./controllers/UserController";
 import { UserImageController } from "./controllers/UserImageController";
 
@@ -181,6 +182,12 @@ function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: Assets
         eventPolicy,
         assetsInfo.events.image.default,
     );
+    const eventRelationshipController = new EventRelationshipController(
+        eventRepository,
+        userRepository,
+        eventPolicy,
+        eventView,
+    );
     const userController = new UserController(
         userRepository,
         emailValidator,
@@ -211,6 +218,7 @@ function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: Assets
         calendarMemberController,
         eventController,
         eventImageController,
+        eventRelationshipController,
         userController,
         userImageController,
         // Middleware

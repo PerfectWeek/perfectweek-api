@@ -26,4 +26,19 @@ export class EventPolicy {
     public readonly userCanInviteToEvent = (eventStatus: EventAttendee): boolean => {
         return eventStatus.role === EventAttendeeRole.Admin;
     }
+
+    public readonly userCanEditRoles = (eventStatus: EventAttendee): boolean => {
+        return eventStatus.role === EventAttendeeRole.Admin;
+    }
+
+    public readonly userCanSetItsRoleTo = (eventStatus: EventAttendee, role: EventAttendeeRole): boolean => {
+        switch (eventStatus.role) {
+            case EventAttendeeRole.Admin:
+                return true;
+            case EventAttendeeRole.Actor:
+                return role !== EventAttendeeRole.Admin;
+            case EventAttendeeRole.Spectator:
+                return role === EventAttendeeRole.Spectator;
+        }
+    }
 }
