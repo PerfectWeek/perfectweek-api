@@ -4,7 +4,7 @@ import { isUndefined } from "util";
 
 import { EventAttendeeRole } from "../core/enums/EventAttendeeRole";
 import { EventAttendeeStatus, eventAttendeeStatusFromString } from "../core/enums/EventAttendeeStatus";
-import { eventVisibilityFromString } from "../core/enums/EventVisibility";
+import { EventVisibility, eventVisibilityFromString } from "../core/enums/EventVisibility";
 
 import { EventView } from "../views/EventView";
 
@@ -92,10 +92,9 @@ export class EventController {
         if (!visibility) {
             throw Boom.badRequest("Invalid visibility");
         }
-
         // Validate optionnal parameter "calendar_id"
-        const calendarId = req.body.calendar_id !== undefined ? parseInt(req.body.calendar_id, 10) : undefined;
-        if (calendarId !== undefined && isNaN(calendarId)) {
+        const calendarId = parseInt(req.body.calendar_id, 10);
+        if (isNaN(calendarId)) {
             throw Boom.badRequest("Invalid calendar_id");
         }
 
@@ -122,23 +121,21 @@ export class EventController {
         // Create and save new Event
         const createdEvent = await this.eventRepository.createEvent(
             new Event({
-                color: eventColor,
-                description: eventDescription,
-                endTime: endTime,
-                location: eventLocation,
                 name: eventName,
+                description: eventDescription,
                 startTime: startTime,
+                endTime: endTime,
                 type: eventType,
+                location: eventLocation,
                 visibility: eventVisibility,
+                color: eventColor,
             }),
             [{
+                user: requestingUser,
                 role: EventAttendeeRole.Admin,
                 status: EventAttendeeStatus.Going,
-                user: requestingUser,
             }],
-            calendar
-                ? { calendar: calendar }
-                : undefined,
+            calendar,
         );
 
         // Invite all Calendar members to the Event
@@ -148,19 +145,19 @@ export class EventController {
 
             // Create and save invitations
             const attendees = calendarMembers.map(cm => ({
+                user: cm.member!,
                 role: calendarMemberRoleToEventAttendeeRole(cm.role),
                 status: EventAttendeeStatus.Invited,
-                user: cm.member!,
             }));
             const eventAttendees = await this.eventRepository.addUsersToEvent(createdEvent, attendees);
 
             // Update Event object attendees list
-            createdEvent.attendees = createdEvent.attendees!.concat(eventAttendees);
+            createdEvent.attendees!.push(...eventAttendees);
         }
 
         res.status(201).json({
-            event: this.eventView.formatEventWithAttendeesAndCalendars(createdEvent),
             message: "Event created",
+            event: this.eventView.formatEventWithAttendeesAndCalendars(createdEvent),
         });
     }
 
@@ -189,8 +186,8 @@ export class EventController {
         }
 
         res.status(200).json({
-            event: this.eventView.formatEventWithAttendeesAndCalendars(event),
             message: "OK",
+            event: this.eventView.formatEventWithAttendeesAndCalendars(event),
         });
     }
 
@@ -272,8 +269,8 @@ export class EventController {
         );
 
         res.status(200).json({
-            events: eventStatuses.map(this.eventView.formatEventWithStatusAndCalendars),
             message: "OK",
+            events: eventStatuses.map(this.eventView.formatEventWithStatusAndCalendars),
         });
     }
 
@@ -332,6 +329,11 @@ export class EventController {
             throw new Error(`"event" property missing in EventAttendee`);
         }
 
+        if (eventStatus.event.visibility === EventVisibility.Public
+            && visibility === EventVisibility.Private) {
+            throw Boom.badRequest("Public Event cannot be changed to private");
+        }
+
         // Edit Event
         const event = eventStatus.event;
         event.name = eventName;
@@ -347,8 +349,8 @@ export class EventController {
         const editedEvent = await this.eventRepository.updateEvent(event);
 
         res.status(200).json({
-            event: this.eventView.formatEvent(editedEvent),
             message: "Event edited",
+            event: this.eventView.formatEvent(editedEvent),
         });
     }
 

@@ -51,13 +51,13 @@ export class CalendarController {
         // Create and save new Calendar
         const calendar = await this.calendarRepository.createCalendar(
             new Calendar({
-                color: calendarColor,
                 name: calendarName,
+                color: calendarColor,
             }),
             [{
-                invitationConfirmed: true,
-                role: CalendarMemberRole.Admin,
                 user: requestingUser,
+                role: CalendarMemberRole.Admin,
+                invitationConfirmed: true,
             }],
         );
 
@@ -68,8 +68,8 @@ export class CalendarController {
         }
 
         res.status(201).json({
-            calendar: this.calendarView.formatCalendarWithMembershipAndMembers(calendar, calendarMembership),
             message: "Calendar created",
+            calendar: this.calendarView.formatCalendarWithMembershipAndMembers(calendar, calendarMembership),
         });
     }
 
@@ -96,8 +96,8 @@ export class CalendarController {
         }
 
         res.status(200).json({
-            calendar: this.calendarView.formatCalendarWithMembershipAndMembers(calendar, calendarMembership),
             message: "OK",
+            calendar: this.calendarView.formatCalendarWithMembershipAndMembers(calendar, calendarMembership),
         });
     }
 
@@ -105,7 +105,7 @@ export class CalendarController {
         const requestingUser = getRequestingUser(req);
 
         // Validate request's parameters
-        const invitationStatusQuery: string = req.query.invitation_status;
+        const invitationStatusQuery: string | undefined = req.query.invitation_status;
 
         const options: { invitationConfirmed?: boolean } = {};
         // Process query option: "invitation_status"
@@ -121,8 +121,8 @@ export class CalendarController {
         const calendarMembers = await this.calendarRepository.getAllCalendarsForUserId(requestingUser.id, options);
 
         res.status(200).json({
-            calendars: calendarMembers.map(this.calendarView.formatCalendarFromMembership),
             message: "OK",
+            calendars: calendarMembers.map(this.calendarView.formatCalendarFromMembership),
         });
     }
 
@@ -130,7 +130,7 @@ export class CalendarController {
         const requestingUser = getRequestingUser(req);
 
         // Validate request's parameters
-        const calendarId: number = parseInt(req.params.calendarId, 10);
+        const calendarId = parseInt(req.params.calendarId, 10);
         const calendarNewName = trim(req.body.name);
         const calendarNewColor = trim(req.body.color);
         if (isNaN(calendarId)) {
@@ -154,13 +154,13 @@ export class CalendarController {
         }
 
         // Edit Calendar
-        calendar.color = calendarNewColor;
         calendar.name = calendarNewName;
+        calendar.color = calendarNewColor;
         const updatedCalendar = await this.calendarRepository.updateCalendar(calendar);
 
         res.status(200).json({
-            calendar: this.calendarView.formatCalendarWithMembership(updatedCalendar, calendarMembership),
             message: "OK",
+            calendar: this.calendarView.formatCalendarWithMembership(updatedCalendar, calendarMembership),
         });
     }
 

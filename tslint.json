@@ -13,11 +13,14 @@
         "arrow-parens": [true, "ban-single-arg-parens"],
         "indent": [true, "spaces", 4],
         "interface-over-type-literal": false,
-        "member-ordering": [true, {"order": "instance-sandwich"}],
+        "member-ordering": [true, {
+            "order": "instance-sandwich"
+        }],
         "no-angle-bracket-type-assertion": false,
         "no-console": [true, "log", "debug"],
         "no-default-export": true,
         "object-literal-shorthand": false,
+        "object-literal-sort-keys": [true, "match-declaration-order-only"],
         "one-line": [true, "check-open-brace"],
         "promise-function-async": true,
         "variable-name": {

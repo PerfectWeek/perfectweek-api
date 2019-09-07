@@ -20,7 +20,7 @@ export class EventRepository {
     public readonly createEvent = async (
         event: Event,
         attendeesOptions: AttendeeOptions[],
-        calendarOptions?: CalendarOptions,
+        calendar?: Calendar,
     ): Promise<Event> => {
         // Created Event
         const createdEvent = await this.conn
@@ -42,14 +42,14 @@ export class EventRepository {
         const users = new Map<number, User>(attendeesOptions.map(mo => [mo.user.id, mo.user]));
         createdEvent.attendees = createdAttendees.map(ea => putAttendeeInEventAttendee(ea, users));
 
-        if (calendarOptions) {
+        if (calendar) {
             const calendarEntry = await this.conn
                 .getRepository(CalendarEntry)
                 .save(new CalendarEntry({
-                    calendarId: calendarOptions.calendar.id,
+                    calendarId: calendar.id,
                     eventId: event.id,
                 }));
-            calendarEntry.calendar = calendarOptions.calendar;
+            calendarEntry.calendar = calendar;
             calendarEntry.event = createdEvent;
 
             createdEvent.owningCalendars = [calendarEntry];
@@ -177,12 +177,17 @@ export class EventRepository {
         event: Event,
         attendeeOptions: AttendeeOptions[],
     ): Promise<EventAttendee[]> => {
-        const attendees = attendeeOptions.map(options => new EventAttendee({
-            eventId: event.id,
-            role: options.role,
-            status: options.status,
-            userId: options.user.id,
-        }));
+        const attendees = attendeeOptions.map(options => {
+            const eventAttendee = new EventAttendee({
+                eventId: event.id,
+                role: options.role,
+                status: options.status,
+                userId: options.user.id,
+            });
+            eventAttendee.event = event;
+            eventAttendee.attendee = options.user;
+            return eventAttendee;
+        });
 
         return this.conn
             .getRepository(EventAttendee)
@@ -197,10 +202,6 @@ type AttendeeOptions = {
     user: User,
     role: EventAttendeeRole,
     status: EventAttendeeStatus,
-};
-
-type CalendarOptions = {
-    calendar: Calendar,
 };
 
 type EventOptions = {

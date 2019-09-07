@@ -20,10 +20,10 @@ export class Event {
     @Column()
     public description: string;
 
-    @Column({ name: "start_time", type: "timestamp with time zone" })
+    @Column({ type: "timestamp with time zone", name: "start_time" })
     public startTime: Date;
 
-    @Column({ name: "end_time", type: "timestamp with time zone" })
+    @Column({ type: "timestamp with time zone", name: "end_time" })
     public endTime: Date;
 
     @Column()
