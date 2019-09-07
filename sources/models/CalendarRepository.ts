@@ -217,6 +217,49 @@ export class CalendarRepository {
     }
 
     /**
+     * Get all pending invites for the requested User
+     *
+     * @param   user
+     */
+    public readonly getPendingInvitesForUser = async (
+        user: User,
+    ): Promise<CalendarMember[]> => {
+        return this.conn
+            .getRepository(CalendarMember)
+            .createQueryBuilder("cm")
+            .innerJoinAndMapOne("cm.calendar", "calendars", "c", "c.id = cm.calendar_id")
+            .where("cm.user_id = :userId", { userId: user.id })
+            .andWhere("cm.invitation_confirmed = :status", { status: false })
+            .getMany();
+    }
+
+    /**
+     * Update relation between a Calendar and a User
+     *
+     * @param   membership
+     */
+    public readonly updateMembership = async (
+        membership: CalendarMember,
+    ): Promise<CalendarMember> => {
+        return this.conn
+            .getRepository(CalendarMember)
+            .save(membership);
+    }
+
+    /**
+     * Remove relation between a Calendar and a User
+     *
+     * @param   membership
+     */
+    public readonly deleteMembership = async (
+        membership: CalendarMember,
+    ): Promise<void> => {
+        await this.conn
+            .getRepository(CalendarMember)
+            .delete(membership);
+    }
+
+    /**
      * Remove the specified Calendar, taking care of its dependencies
      *
      * @param   calendarId

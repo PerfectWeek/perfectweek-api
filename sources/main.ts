@@ -6,6 +6,7 @@ import * as Router from "./router";
 
 import { Server } from "./Server";
 
+import { CalendarInviteView } from "./views/CalendarInviteView";
 import { CalendarView } from "./views/CalendarView";
 import { EventView } from "./views/EventView";
 import { UserView } from "./views/UserView";
@@ -123,6 +124,7 @@ function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: Assets
     const userProfileImageStorageService = new ImageStorageService(assetsInfo.users.profile.baseDir);
 
     // Create Views
+    const calendarInviteView = new CalendarInviteView();
     const calendarView = new CalendarView();
     const eventView = new EventView();
     const userView = new UserView();
@@ -162,6 +164,7 @@ function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: Assets
         eventRepository,
         userRepository,
         calendarPolicy,
+        calendarInviteView,
         calendarView,
     );
     const eventController = new EventController(

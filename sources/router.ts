@@ -163,10 +163,22 @@ export function createRouter(
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(calendarMemberController.inviteMembers),
     );
-
     // TODO: Remove member
-    // TODO: Accept invite
-    // TODO: Revoke invite
+    router.get(
+        "/calendar-invites",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(calendarMemberController.getPendingInvites),
+    );
+    router.post(
+        "/calendar-invites/:calendarId/accept",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(calendarMemberController.acceptInvite),
+    );
+    router.post(
+        "/calendar-invites/:calendarId/decline",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(calendarMemberController.declineInvite),
+    );
 
     //
     // Events
