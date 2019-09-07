@@ -76,6 +76,14 @@ export class EventRepository {
         });
     }
 
+    public readonly getEventById = async (
+        eventId: number,
+    ): Promise<Event | undefined> => {
+        return this.conn
+            .getRepository(Event)
+            .findOne({ id: eventId });
+    }
+
     public readonly getEventRelationship = async (
         eventId: number,
         userId: number,
@@ -94,6 +102,14 @@ export class EventRepository {
         }
 
         return query.getOne();
+    }
+
+    public readonly updateEventRelationship = async (
+        eventRelationship: EventAttendee,
+    ): Promise<EventAttendee> => {
+        return this.conn
+            .getRepository(EventAttendee)
+            .save(eventRelationship);
     }
 
     public readonly getEventWithAttendees = async (eventId: number): Promise<Event | undefined> => {

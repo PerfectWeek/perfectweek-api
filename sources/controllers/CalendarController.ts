@@ -126,7 +126,7 @@ export class CalendarController {
         });
     }
 
-    public readonly editCalendar = async (req: Request, res: Response) => {
+    public readonly updateCalendar = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
 
         // Validate request's parameters
