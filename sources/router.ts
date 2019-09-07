@@ -9,6 +9,7 @@ import { CalendarImageController } from "./controllers/CalendarImageController";
 import { CalendarMemberController } from "./controllers/CalendarMemberController";
 import { EventController } from "./controllers/EventController";
 import { EventImageController } from "./controllers/EventImageController";
+import { EventRelationshipController } from "./controllers/EventRelationshipController";
 import { UserController } from "./controllers/UserController";
 import { UserImageController } from "./controllers/UserImageController";
 
@@ -25,6 +26,7 @@ export function createRouter(
     calendarMemberController: CalendarMemberController,
     eventController: EventController,
     eventImageController: EventImageController,
+    eventRelationshipController: EventRelationshipController,
     userController: UserController,
     userImageController: UserImageController,
     // Middleware
@@ -120,7 +122,7 @@ export function createRouter(
     router.put(
         "/calendars/:calendarId",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(calendarController.editCalendar),
+        asyncHandler(calendarController.updateCalendar),
     );
     router.delete(
         "/calendars/:calendarId",
@@ -128,7 +130,9 @@ export function createRouter(
         asyncHandler(calendarController.deleteCalendar),
     );
 
-    // Calendar event
+    //
+    // Calendar events
+    //
     router.post(
         "/calendars/:calendarId/events",
         asyncHandler(authenticatedOnlyMiddleware),
@@ -163,22 +167,17 @@ export function createRouter(
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(calendarMemberController.inviteMembers),
     );
-    // TODO: Remove member
-    router.get(
-        "/calendar-invites",
-        asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(calendarMemberController.getPendingInvites),
-    );
     router.post(
-        "/calendar-invites/:calendarId/accept",
+        "/calendars/:calendarId/member-invite/accept",
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(calendarMemberController.acceptInvite),
     );
     router.post(
-        "/calendar-invites/:calendarId/decline",
+        "/calendars/:calendarId/member-invite/decline",
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(calendarMemberController.declineInvite),
     );
+    // TODO: DELETE "/calendars/:calendarId/members/:userId"
 
     //
     // Events
@@ -208,6 +207,26 @@ export function createRouter(
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(eventController.deleteEvent),
     );
+
+    //
+    // Event attendees
+    //
+    router.post(
+        "/events/:eventId/attendees",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(eventRelationshipController.inviteAttendees),
+    );
+    router.put(
+        "/events/:eventId/attendees/me/status",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(eventRelationshipController.updateSelfStatus),
+    );
+    router.put(
+        "/events/:eventId/attendees/:userId/role",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(eventRelationshipController.updateAttendeeRole),
+    );
+    // TODO: DELETE /events/:eventId/attendees/:attendeeId
 
     //
     // Event image

@@ -168,7 +168,60 @@ export class EventRelationshipController {
         });
     }
 
-    public readonly updateAttendeeRole = async (_req: Request, res: Response) => {
+    public readonly updateAttendeeRole = async (req: Request, res: Response) => {
+        const requestingUser = getRequestingUser(req);
+
+        // Validate request's arguments
+        const eventId = parseInt(req.params.eventId, 10);
+        if (!eventId) {
+            throw Boom.badRequest(`Invalid event_id "${req.params.eventId}"`);
+        }
+        const userId = parseInt(req.params.userId, 10);
+        if (!userId) {
+            throw Boom.badRequest(`Invalid user_id "${req.params.userId}"`);
+        }
+        const newRole = eventAttendeeRoleFromString(req.body.role);
+        if (!newRole) {
+            throw Boom.badRequest(`Invalid Event role "${req.body.role}"`);
+        }
+
+        // Retrieve Event
+        const event = await this.eventRepository.getEventById(eventId);
+        if (!event) {
+            throw Boom.notFound("Event does not exist");
+        }
+
+        // Make sure requesting User is related to the Event
+        const eventRelationship = await this.eventRepository.getEventRelationship(
+            eventId,
+            requestingUser.id,
+        );
+        if (!eventRelationship) {
+            throw Boom.unauthorized(`You cannot access this Event`);
+        }
+
+        // Make sure the requesting User can edit roles
+        if (requestingUser.id === userId) { // The requesting User is updating itself
+            if (!this.eventPolicy.userCanSetItsRoleTo(eventRelationship, newRole)) {
+                throw Boom.unauthorized(`As a "${eventRelationship.role}", you cannot edit your role to ${newRole}`);
+            }
+            // Update role
+            eventRelationship.role = newRole;
+            await this.eventRepository.updateEventRelationship(eventRelationship);
+        }
+        else { // The requesting User is updating someone else
+            const userEventRelationship = await this.eventRepository.getEventRelationship(eventId, userId);
+            if (!userEventRelationship) {
+                throw Boom.badRequest(`User "${userId}" is not related to this Event`);
+            }
+            if (!this.eventPolicy.userCanEditRoles(eventRelationship)) {
+                throw Boom.unauthorized(`You do not have enough rights to edit roles`);
+            }
+            // Update role
+            userEventRelationship.role = newRole;
+            await this.eventRepository.updateEventRelationship(userEventRelationship);
+        }
+
         res.status(200).json({
             message: "Role updated",
         });
