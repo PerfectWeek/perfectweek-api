@@ -6,6 +6,7 @@ import { AuthLocalController } from "./controllers/AuthLocalController";
 import { CalendarController } from "./controllers/CalendarController";
 import { CalendarEventController } from "./controllers/CalendarEventController";
 import { CalendarImageController } from "./controllers/CalendarImageController";
+import { CalendarMemberController } from "./controllers/CalendarMemberController";
 import { EventController } from "./controllers/EventController";
 import { EventImageController } from "./controllers/EventImageController";
 import { UserController } from "./controllers/UserController";
@@ -21,6 +22,7 @@ export function createRouter(
     calendarController: CalendarController,
     calendarEventController: CalendarEventController,
     calendarImageController: CalendarImageController,
+    calendarMemberController: CalendarMemberController,
     eventController: EventController,
     eventImageController: EventImageController,
     userController: UserController,
@@ -152,6 +154,19 @@ export function createRouter(
         imageUploadMiddleware.single("image"),
         asyncHandler(calendarImageController.getImage),
     );
+
+    //
+    // Calendar members
+    //
+    router.post(
+        "/calendars/:calendarId/members",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(calendarMemberController.inviteMembers),
+    );
+
+    // TODO: Remove member
+    // TODO: Accept invite
+    // TODO: Revoke invite
 
     //
     // Events

@@ -83,7 +83,7 @@ export class CalendarEventController {
             .map(m => ({
                 user: m.member!,
                 role: EventAttendeeRole.Spectator,
-                status: EventAttendeeStatus.Invited,
+                status: EventAttendeeStatus.None,
             }));
         await this.eventRepository.addUsersToEvent(event, newAttendees);
 

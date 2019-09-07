@@ -19,7 +19,7 @@ export class EventRepository {
 
     public readonly createEvent = async (
         event: Event,
-        attendeesOptions: AttendeeOptions[],
+        attendeesOptions: AttendeeUserOptions[],
         calendar?: Calendar,
     ): Promise<Event> => {
         // Created Event
@@ -175,7 +175,7 @@ export class EventRepository {
 
     public readonly addUsersToEvent = async (
         event: Event,
-        attendeeOptions: AttendeeOptions[],
+        attendeeOptions: AttendeeUserOptions[],
     ): Promise<EventAttendee[]> => {
         const attendees = attendeeOptions.map(options => {
             const eventAttendee = new EventAttendee({
@@ -193,13 +193,53 @@ export class EventRepository {
             .getRepository(EventAttendee)
             .save(attendees);
     }
+
+    public readonly associateUserToEvents = async (
+        user: User,
+        attendeeOptions: AttendeeEventOptions[],
+    ): Promise<EventAttendee[]> => {
+        return this.conn.manager.save(
+            attendeeOptions.map(options => new EventAttendee({
+                userId: user.id,
+                eventId: options.event.id,
+                role: options.role,
+                status: options.status,
+            })),
+        );
+    }
+
+    public readonly getAllEventFromCalendarWhereUserIsNotPartOf = async (
+        calendar: Calendar,
+        user: User,
+    ): Promise<Event[]> => {
+        return this.conn
+            .getRepository(Event)
+            .createQueryBuilder("e")
+            .innerJoin("calendar_entries", "ce", "ce.event_id = e.id")
+            .where("ce.calendar_id = :calendarId", { calendarId: calendar.id })
+            .andWhere(qb => {
+                return "NOT EXISTS " + qb.subQuery()
+                    .select()
+                    .from(EventAttendee, "ea")
+                    .where("ea.event_id = e.id")
+                    .andWhere("ea.user_id = :userId", { userId: user.id })
+                    .getQuery();
+            })
+            .getMany();
+    }
 }
 
 //
 // Local types
 //
-type AttendeeOptions = {
+type AttendeeUserOptions = {
     user: User,
+    role: EventAttendeeRole,
+    status: EventAttendeeStatus,
+};
+
+type AttendeeEventOptions = {
+    event: Event,
     role: EventAttendeeRole,
     status: EventAttendeeStatus,
 };
