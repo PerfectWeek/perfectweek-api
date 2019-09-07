@@ -22,4 +22,8 @@ export class EventPolicy {
     public readonly userCanDeleteEvent = (eventStatus: EventAttendee): boolean => {
         return eventStatus.role === EventAttendeeRole.Admin;
     }
+
+    public readonly userCanInviteToEvent = (eventStatus: EventAttendee): boolean => {
+        return eventStatus.role === EventAttendeeRole.Admin;
+    }
 }
