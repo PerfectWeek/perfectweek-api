@@ -8,6 +8,7 @@ import { UserRepository } from "../models/UserRepository";
 
 import { CalendarPolicy } from "../policies/CalendarPolicy";
 
+import { CalendarInviteView } from "../views/CalendarInviteView";
 import { CalendarView } from "../views/CalendarView";
 
 import { getRequestingUser } from "../middleware/utils/getRequestingUser";
@@ -25,6 +26,7 @@ export class CalendarMemberController {
 
     private readonly calendarPolicy: CalendarPolicy;
 
+    private readonly calendarInviteView: CalendarInviteView;
     private readonly calendarView: CalendarView;
 
     constructor(
@@ -35,12 +37,14 @@ export class CalendarMemberController {
         // Policies
         calendarPolicy: CalendarPolicy,
         // Views
+        calendarInviteView: CalendarInviteView,
         calendarView: CalendarView,
     ) {
         this.calendarRepository = calendarRepository;
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
         this.calendarPolicy = calendarPolicy;
+        this.calendarInviteView = calendarInviteView;
         this.calendarView = calendarView;
     }
 
@@ -141,6 +145,73 @@ export class CalendarMemberController {
         res.status(200).json({
             message: "OK",
             members: newMembersList.map(this.calendarView.formatCalendarMember),
+        });
+    }
+
+    public readonly getPendingInvites = async (req: Request, res: Response) => {
+        const requestingUser = getRequestingUser(req);
+
+        // Retrieve pendings invites
+        const pendingInvites = await this.calendarRepository.getPendingInvitesForUser(requestingUser);
+
+        res.status(200).json({
+            message: "OK",
+            invites: pendingInvites.map(this.calendarInviteView.formatCalendarInvite),
+        });
+    }
+
+    public readonly acceptInvite = async (req: Request, res: Response) => {
+        const requestingUser = getRequestingUser(req);
+
+        // Validate request's parameters
+        const calendarId = parseInt(req.params.calendarId, 10);
+        if (isNaN(calendarId)) {
+            throw Boom.badRequest(`Invalid calendar_id "${req.params.calendarId}"`);
+        }
+
+        // Retrieve invitation
+        const calendarMembership = await this.calendarRepository.getCalendarMemberShip(
+            calendarId,
+            requestingUser.id,
+        );
+        if (!calendarMembership
+            || calendarMembership.invitationConfirmed !== false) {
+            throw Boom.badRequest("There is no pending invitation for this Calendar");
+        }
+
+        // Accept invitation
+        calendarMembership.invitationConfirmed = true;
+        await this.calendarRepository.updateMembership(calendarMembership);
+
+        res.status(200).json({
+            message: "Invitation accepted",
+        });
+    }
+
+    public readonly declineInvite = async (req: Request, res: Response) => {
+        const requestingUser = getRequestingUser(req);
+
+        // Validate request's parameters
+        const calendarId = parseInt(req.params.calendarId, 10);
+        if (isNaN(calendarId)) {
+            throw Boom.badRequest(`Invalid calendar_id "${req.params.calendarId}"`);
+        }
+
+        // Retrieve invitation
+        const calendarMembership = await this.calendarRepository.getCalendarMemberShip(
+            calendarId,
+            requestingUser.id,
+        );
+        if (!calendarMembership
+            || calendarMembership.invitationConfirmed !== false) {
+            throw Boom.badRequest("There is no pending invitation for this Calendar");
+        }
+
+        // Delete invitation
+        await this.calendarRepository.deleteMembership(calendarMembership);
+
+        res.status(200).json({
+            message: "Invitation declined",
         });
     }
 }
