@@ -116,7 +116,7 @@ export class CalendarMemberController {
         const alreadyInMember = membersToAdd
             .find(m => calendar.members!.find(cm => cm.userId === m.user.id) !== undefined);
         if (alreadyInMember) {
-            throw Boom.conflict(`User ${alreadyInMember.user.id} is already a member of the Group`);
+            throw Boom.conflict(`User ${alreadyInMember.user.id} is already a member of the Calendar`);
         }
 
         // Add users in calendar
