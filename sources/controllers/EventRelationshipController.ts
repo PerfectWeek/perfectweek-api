@@ -123,6 +123,56 @@ export class EventRelationshipController {
             attendees: newAttendeesList.map(this.eventView.formatEventAttendee),
         });
     }
+
+    public readonly updateSelfStatus = async (req: Request, res: Response) => {
+        const requestingUser = getRequestingUser(req);
+
+        // Validate request's arguments
+        const eventId = parseInt(req.params.eventId, 10);
+        if (!eventId) {
+            throw Boom.badRequest(`Invalid event_id "${req.params.eventId}"`);
+        }
+        const newStatus = eventAttendeeStatusFromString(req.body.status);
+        if (!newStatus) {
+            throw Boom.badRequest(`Invalid Event status "${req.body.status}"`);
+        }
+
+        // Retrieve Event
+        const event = await this.eventRepository.getEventById(eventId);
+        if (!event) {
+            throw Boom.notFound("Event does not exist");
+        }
+
+        // Make sure the requesting User can set his status for this Event
+        let eventRelationship: EventAttendee | undefined;
+        eventRelationship = await this.eventRepository.getEventRelationship(eventId, requestingUser.id);
+        if (!this.eventPolicy.eventIsPublic(event)
+            && !eventRelationship) {
+            throw Boom.unauthorized("You cannot access this Event");
+        }
+        if (!eventRelationship) {
+            eventRelationship = new EventAttendee({
+                eventId: eventId,
+                userId: requestingUser.id,
+                role: EventAttendeeRole.Spectator,
+                status: EventAttendeeStatus.None,
+            });
+        }
+
+        // Set new status and save
+        eventRelationship.status = newStatus;
+        this.eventRepository.updateEventRelationship(eventRelationship);
+
+        res.status(200).json({
+            message: "Status updated",
+        });
+    }
+
+    public readonly updateAttendeeRole = async (_req: Request, res: Response) => {
+        res.status(200).json({
+            message: "Role updated",
+        });
+    }
 }
 
 type AttendeeQueryParam = {
