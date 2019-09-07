@@ -32,6 +32,7 @@ import { AuthLocalController } from "./controllers/AuthLocalController";
 import { CalendarController } from "./controllers/CalendarController";
 import { CalendarEventController } from "./controllers/CalendarEventController";
 import { CalendarImageController } from "./controllers/CalendarImageController";
+import { CalendarMemberController } from "./controllers/CalendarMemberController";
 import { EventController } from "./controllers/EventController";
 import { EventImageController } from "./controllers/EventImageController";
 import { UserController } from "./controllers/UserController";
@@ -61,6 +62,9 @@ function main(): void {
     }
 
     const ASSETS_INFO: AssetsInfo = {
+        favicon: {
+            image: `${CURRENT_DIRECTORY}/assets/favicon.ico`,
+        },
         MULTER_UPLOAD_DIR: `${ASSETS_ROOT_DIR}/uploads/images`,
         calendars: {
             icon: {
@@ -73,9 +77,6 @@ function main(): void {
                 baseDir: `${ASSETS_ROOT_DIR}/images/events/image`,
                 default: `${CURRENT_DIRECTORY}/assets/images/event_image_default.jpg`,
             },
-        },
-        favicon: {
-            image: `${CURRENT_DIRECTORY}/assets/favicon.ico`,
         },
         users: {
             profile: {
@@ -156,6 +157,13 @@ function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: Assets
         calendarPolicy,
         assetsInfo.calendars.icon.default,
     );
+    const calendarMemberController = new CalendarMemberController(
+        calendarRepository,
+        eventRepository,
+        userRepository,
+        calendarPolicy,
+        calendarView,
+    );
     const eventController = new EventController(
         calendarRepository,
         eventRepository,
@@ -197,6 +205,7 @@ function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: Assets
         calendarController,
         calendarEventController,
         calendarImageController,
+        calendarMemberController,
         eventController,
         eventImageController,
         userController,

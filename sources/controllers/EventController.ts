@@ -93,8 +93,10 @@ export class EventController {
             throw Boom.badRequest("Invalid visibility");
         }
         // Validate optionnal parameter "calendar_id"
-        const calendarId = parseInt(req.body.calendar_id, 10);
-        if (isNaN(calendarId)) {
+        const calendarId = req.body.calendar_id !== undefined
+            ? parseInt(req.body.calendar_id, 10)
+            : undefined;
+        if (calendarId !== undefined && isNaN(calendarId)) {
             throw Boom.badRequest("Invalid calendar_id");
         }
 

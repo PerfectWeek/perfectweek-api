@@ -126,26 +126,62 @@ export class CalendarRepository {
     }
 
     /**
+     * Add new members to a Calendar
+     *
+     * @param   calendar
+     * @param   memberOptions
+     *
+     * @returns The new list of members. Also update "Calendar.members" attirbute.
+     */
+    public readonly addMembersToCalendar = async (
+        calendar: Calendar,
+        membersOptions: MemberOptions[],
+    ): Promise<CalendarMember[]> => {
+        // Save new members
+        const members = membersOptions.map(mo => new CalendarMember({
+            calendarId: calendar.id,
+            invitationConfirmed: mo.invitationConfirmed,
+            role: mo.role,
+            userId: mo.user.id,
+        }));
+        await this.conn.manager.save(members);
+
+        // Process createdMembers so that its "member" attribute is correct
+        const users = new Map<number, User>(membersOptions.map(mo => [mo.user.id, mo.user]));
+        const createdMembers = members.map(cm => putMemberInCalendarMember(cm, users));
+
+        // Make sure calendar's member field is correct
+        if (calendar.members) {
+            calendar.members.push(...createdMembers);
+        }
+        else {
+            calendar.members = createdMembers;
+        }
+
+        return calendar.members;
+    }
+
+    /**
      * Add an Event to a Calendar
      *
      * @param   calendarId
-     * @param   eventOptions
+     * @param   event
      */
     public readonly addEventToCalendar = async (
         calendar: Calendar,
-        eventOptions: EntryOptions,
+        event: Event,
     ): Promise<CalendarEntry> => {
         // Create CalendarEntry
         const entry = await this.conn
             .getRepository(CalendarEntry)
             .save(new CalendarEntry({
                 calendarId: calendar.id,
-                eventId: eventOptions.event.id,
+                eventId: event.id,
             }));
 
         // Process entry so that its attributes are correct
         entry.calendar = calendar;
-        entry.event = eventOptions.event;
+        entry.event = event;
 
         return entry;
     }
@@ -201,10 +237,6 @@ type MemberOptions = {
     user: User,
     role: CalendarMemberRole,
     invitationConfirmed: boolean,
-};
-
-type EntryOptions = {
-    event: Event,
 };
 
 //
