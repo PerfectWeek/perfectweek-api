@@ -39,3 +39,50 @@ If you also want to delete the local data (like the database and stored images),
 ```sh
 docker-compose down -v
 ```
+
+## Deployment
+
+### Environment configuration
+
+The following environment variables are available. Do not forget to assign values
+to the ones without defaults.
+
+| Variable name | Description | Default value |
+|----|----|----|
+| **PORT** | The port on which the server will accept connections | `80` |
+| **DATABASE_URL** | The database connection | `undefined` |
+| **JWT_SECRET_KEY** | The key used to cipher JWT tokens | `undefined` |
+| **ASSETS_ROOT_DIR** | The directory inside of which uploaded assets will be saved | `/assets` |
+
+### Database migration
+
+Before, running new releases, you will have to make sure that the database
+schema is up to date.
+
+You can do so by running the command:
+
+```sh
+yarn run typeorm migration:run
+```
+
+> Note: Make sure to have the variable `DATABASE_URL` set.
+
+### Docker image
+
+To deploy the projet (in a production environment), you can use the provided
+Dockerfile.
+
+```sh
+# Build docker image
+docker build -t perfectweek-api .
+
+# Create and run the container
+docker create --name api -p 80:80 perfectweek-api
+docker start api
+```
+
+> Note: Additional environment variables might be required to run the
+> container correctly.
+
+> You can provide environment variables from the command line using the "-e"
+> option. See: [Docker run documentation](https://docs.docker.com/engine/reference/commandline/run/#set-environment-variables--e---env---env-file).
