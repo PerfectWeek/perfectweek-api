@@ -10,7 +10,8 @@
         "start": "ts-node sources/main.ts",
         "dev": "nodemon -L",
 
-        "test:linter": "tslint -p tsconfig.json -c tslint.json './sources/**/*.ts' './tests/**/*.ts'",
+        "lint": "tslint -p tsconfig.json -c tslint.json './sources/**/*.ts' './tests/**/*.ts'",
+        "lint:fix": "tslint -p tsconfig.json -c tslint.json './sources/**/*.ts' './tests/**/*.ts' --fix",
         "test:unit-tests": "jest --coverage",
 
         "jest": "jest",

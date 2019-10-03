@@ -88,19 +88,22 @@ function main(): void {
         },
     };
 
-    createConnection(dbConfig)
-        .then((conn: Connection) => {
-            console.info("[LOG] Connected to database");
+    createConnection(dbConfig).then((conn: Connection) => {
+        console.info("[LOG] Connected to database");
 
-            const server = createServer(conn, jwtSecretKey, ASSETS_INFO);
+        const server = createServer(conn, jwtSecretKey, ASSETS_INFO);
 
-            server.start(apiPort, () => {
-                console.info(`[LOG] Server started on port ${apiPort}`);
-            });
+        server.start(apiPort, () => {
+            console.info(`[LOG] Server started on port ${apiPort}`);
         });
+    });
 }
 
-function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: AssetsInfo): Server {
+function createServer(
+    conn: Connection,
+    jwtSecretKey: string,
+    assetsInfo: AssetsInfo,
+): Server {
     // Create Repositories
     const calendarRepository = new CalendarRepository(conn);
     const eventRepository = new EventRepository(conn);
@@ -120,9 +123,15 @@ function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: Assets
     const dateService = new DateService();
     const jwtService = new JwtService(jwtSecretKey);
     const passwordService = new PasswordService();
-    const calendarIconImageStorageService = new ImageStorageService(assetsInfo.calendars.icon.baseDir);
-    const eventImageStorageService = new ImageStorageService(assetsInfo.events.image.baseDir);
-    const userProfileImageStorageService = new ImageStorageService(assetsInfo.users.profile.baseDir);
+    const calendarIconImageStorageService = new ImageStorageService(
+        assetsInfo.calendars.icon.baseDir,
+    );
+    const eventImageStorageService = new ImageStorageService(
+        assetsInfo.events.image.baseDir,
+    );
+    const userProfileImageStorageService = new ImageStorageService(
+        assetsInfo.users.profile.baseDir,
+    );
 
     // Create Views
     const calendarInviteView = new CalendarInviteView();
@@ -205,7 +214,9 @@ function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: Assets
         userRepository,
         jwtService,
     );
-    const imageUploadMiddleware = ImageUploadMiddleware.generateImageUploadMiddleware(assetsInfo.MULTER_UPLOAD_DIR);
+    const imageUploadMiddleware = ImageUploadMiddleware.generateImageUploadMiddleware(
+        assetsInfo.MULTER_UPLOAD_DIR,
+    );
 
     // Create Router
     const router = Router.createRouter(
@@ -231,27 +242,27 @@ function createServer(conn: Connection, jwtSecretKey: string, assetsInfo: Assets
 
 type AssetsInfo = {
     favicon: {
-        image: string,
-    },
-    MULTER_UPLOAD_DIR: string,
+        image: string;
+    };
+    MULTER_UPLOAD_DIR: string;
     calendars: {
         icon: {
-            baseDir: string,
-            default: string,
-        },
-    },
+            baseDir: string;
+            default: string;
+        };
+    };
     events: {
         image: {
-            baseDir: string,
-            default: string,
-        },
-    },
+            baseDir: string;
+            default: string;
+        };
+    };
     users: {
         profile: {
-            baseDir: string,
-            default: string,
-        },
-    },
+            baseDir: string;
+            default: string;
+        };
+    };
 };
 
 // Run only if executed directly (e.g: `ts-node sources/main.ts`)
