@@ -1,5 +1,9 @@
 language: node_js
 
+branches:
+  only:
+    - master
+
 node_js:
   - "11.15.0"
 
@@ -7,8 +11,8 @@ services:
   - postgresql
 
 env:
-  - TEST_SUITE=unit-tests
-  - TEST_SUITE=linter
+  - TEST_SUITE=test:unit-tests
+  - TEST_SUITE=lint
 
 install:
   - yarn install
@@ -17,4 +21,4 @@ before_script:
   - yarn run typeorm migration:run
 
 script:
-  - yarn run test:$TEST_SUITE
+  - yarn run $TEST_SUITE
