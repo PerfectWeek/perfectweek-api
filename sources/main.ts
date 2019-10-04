@@ -29,6 +29,7 @@ import { CalendarPolicy } from "./policies/CalendarPolicy";
 import { EventPolicy } from "./policies/EventPolicy";
 
 import { ApiEndpointController } from "./controllers/ApiEndpointController";
+import { AssistantController } from "./controllers/AssistantController";
 import { AuthLocalController } from "./controllers/AuthLocalController";
 import { CalendarController } from "./controllers/CalendarController";
 import { CalendarEventController } from "./controllers/CalendarEventController";
@@ -37,6 +38,7 @@ import { CalendarMemberController } from "./controllers/CalendarMemberController
 import { EventController } from "./controllers/EventController";
 import { EventImageController } from "./controllers/EventImageController";
 import { EventRelationshipController } from "./controllers/EventRelationshipController";
+import { FriendController } from "./controllers/FriendController";
 import { UserController } from "./controllers/UserController";
 import { UserImageController } from "./controllers/UserImageController";
 
@@ -143,6 +145,7 @@ function createServer(
     const apiEndpointController = new ApiEndpointController(
         assetsInfo.favicon.image,
     );
+    const assistantController = new AssistantController();
     const authLocalController = new AuthLocalController(
         pendingUserRepository,
         userRepository,
@@ -197,6 +200,7 @@ function createServer(
         eventPolicy,
         eventView,
     );
+    const friendController = new FriendController();
     const userController = new UserController(
         userRepository,
         emailValidator,
@@ -222,6 +226,7 @@ function createServer(
     const router = Router.createRouter(
         // Controller
         apiEndpointController,
+        assistantController,
         authLocalController,
         calendarController,
         calendarEventController,
@@ -230,6 +235,7 @@ function createServer(
         eventController,
         eventImageController,
         eventRelationshipController,
+        friendController,
         userController,
         userImageController,
         // Middleware
