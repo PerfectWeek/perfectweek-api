@@ -2,6 +2,7 @@ import { Router } from "express";
 import Multer from "multer";
 
 import { ApiEndpointController } from "./controllers/ApiEndpointController";
+import { AssistantController } from "./controllers/AssistantController";
 import { AuthLocalController } from "./controllers/AuthLocalController";
 import { CalendarController } from "./controllers/CalendarController";
 import { CalendarEventController } from "./controllers/CalendarEventController";
@@ -10,6 +11,7 @@ import { CalendarMemberController } from "./controllers/CalendarMemberController
 import { EventController } from "./controllers/EventController";
 import { EventImageController } from "./controllers/EventImageController";
 import { EventRelationshipController } from "./controllers/EventRelationshipController";
+import { FriendController } from "./controllers/FriendController";
 import { UserController } from "./controllers/UserController";
 import { UserImageController } from "./controllers/UserImageController";
 
@@ -19,6 +21,7 @@ import { asyncHandler } from "./middleware/utils/asyncHandler";
 export function createRouter(
     // Controllers
     apiEndpointController: ApiEndpointController,
+    assistantController: AssistantController,
     authLocalController: AuthLocalController,
     calendarController: CalendarController,
     calendarEventController: CalendarEventController,
@@ -27,6 +30,7 @@ export function createRouter(
     eventController: EventController,
     eventImageController: EventImageController,
     eventRelationshipController: EventRelationshipController,
+    friendController: FriendController,
     userController: UserController,
     userImageController: UserImageController,
     // Middleware
@@ -102,6 +106,35 @@ export function createRouter(
     );
 
     //
+    // Friend relationships
+    //
+    router.post(
+        "/friends",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(friendController.inviteUser),
+    );
+    router.post(
+        "/friends/:userId/accept",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(friendController.inviteAccept),
+    );
+    router.post(
+        "/friends/:userId/decline",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(friendController.inviteDecline),
+    );
+    router.get(
+        "/friends",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(friendController.getAllFriends),
+    );
+    router.delete(
+        "/friends/:userId",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(friendController.deleteFriend),
+    );
+
+    //
     // Calendars
     //
     router.post(
@@ -170,14 +203,23 @@ export function createRouter(
     router.post(
         "/calendars/:calendarId/member-invite/accept",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(calendarMemberController.acceptInvite),
+        asyncHandler(calendarMemberController.acceptMemberInvite),
     );
     router.post(
         "/calendars/:calendarId/member-invite/decline",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(calendarMemberController.declineInvite),
+        asyncHandler(calendarMemberController.declineMemberInvite),
     );
-    // TODO: DELETE "/calendars/:calendarId/members/:userId"
+    router.put(
+        "/calendars/:calendarId/members/:userId/role",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(calendarMemberController.editMemberRole),
+    );
+    router.delete(
+        "/calendars/:calendarId/members/:userId",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(calendarMemberController.deleteMember),
+    );
 
     //
     // Events
@@ -226,7 +268,11 @@ export function createRouter(
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(eventRelationshipController.updateAttendeeRole),
     );
-    // TODO: DELETE /events/:eventId/attendees/:attendeeId
+    router.delete(
+        "/events/:eventId/attendees/:userId",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(eventRelationshipController.deleteAttendee),
+    );
 
     //
     // Event image
@@ -241,6 +287,25 @@ export function createRouter(
         "/events/:eventId/images/icon",
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(eventImageController.getImage),
+    );
+
+    //
+    // Assistant
+    //
+    router.get(
+        "/assistant/find-best-slots",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(assistantController.findBestSlots),
+    );
+    router.get(
+        "/assistant/event-suggestions",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(assistantController.eventSuggestion),
+    );
+    router.get(
+        "/assistant/perfect-week",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(assistantController.perfectWeek),
     );
 
     return router;

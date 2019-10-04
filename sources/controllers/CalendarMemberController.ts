@@ -160,7 +160,7 @@ export class CalendarMemberController {
         });
     }
 
-    public readonly acceptInvite = async (req: Request, res: Response) => {
+    public readonly acceptMemberInvite = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
 
         // Validate request's parameters
@@ -188,7 +188,7 @@ export class CalendarMemberController {
         });
     }
 
-    public readonly declineInvite = async (req: Request, res: Response) => {
+    public readonly declineMemberInvite = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
 
         // Validate request's parameters
@@ -212,6 +212,18 @@ export class CalendarMemberController {
 
         res.status(200).json({
             message: "Invitation declined",
+        });
+    }
+
+    public readonly editMemberRole = async (_req: Request, res: Response) => {
+        res.status(200).json({
+            message: "Role edited",
+        });
+    }
+
+    public readonly deleteMember = async (_req: Request, res: Response) => {
+        res.status(200).json({
+            message: "Member removed",
         });
     }
 }

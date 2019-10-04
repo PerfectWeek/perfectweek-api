@@ -226,6 +226,12 @@ export class EventRelationshipController {
             message: "Role updated",
         });
     }
+
+    public readonly deleteAttendee = async (_req: Request, res: Response) => {
+        res.status(200).json({
+            message: "User removed from Event",
+        });
+    }
 }
 
 type AttendeeQueryParam = {
