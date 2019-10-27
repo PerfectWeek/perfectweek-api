@@ -216,12 +216,14 @@ export class CalendarMemberController {
     }
 
     public readonly editMemberRole = async (_req: Request, res: Response) => {
+        // TODO
         res.status(200).json({
             message: "Role edited",
         });
     }
 
     public readonly deleteMember = async (_req: Request, res: Response) => {
+        // TODO
         res.status(200).json({
             message: "Member removed",
         });
