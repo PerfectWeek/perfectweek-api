@@ -187,7 +187,7 @@ export class CalendarRepository {
     }
 
     /**
-     * Retrieive relation between a Calendar and an Event
+     * Retrieve relation between a Calendar and an Event
      *
      * @param   calendarId
      * @param   eventId
@@ -214,23 +214,6 @@ export class CalendarRepository {
         await this.conn
             .getRepository(CalendarEntry)
             .delete({ calendarId: calendarId, eventId: eventId });
-    }
-
-    /**
-     * Get all pending invites for the requested User
-     *
-     * @param   user
-     */
-    public readonly getPendingInvitesForUser = async (
-        user: User,
-    ): Promise<CalendarMember[]> => {
-        return this.conn
-            .getRepository(CalendarMember)
-            .createQueryBuilder("cm")
-            .innerJoinAndMapOne("cm.calendar", "calendars", "c", "c.id = cm.calendar_id")
-            .where("cm.user_id = :userId", { userId: user.id })
-            .andWhere("cm.invitation_confirmed = :status", { status: false })
-            .getMany();
     }
 
     /**
