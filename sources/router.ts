@@ -268,11 +268,6 @@ export function createRouter(
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(eventRelationshipController.updateAttendeeRole),
     );
-    router.delete(
-        "/events/:eventId/attendees/:userId",
-        asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(eventRelationshipController.deleteAttendee),
-    );
 
     //
     // Event image

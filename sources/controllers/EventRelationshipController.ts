@@ -91,7 +91,7 @@ export class EventRelationshipController {
         const attendeesToAdd = await Promise.all(attendeesQuery.map(async a => {
             const user = await this.userRepository.getUserById(a.id);
             if (!user) {
-                throw Boom.notFound(`User "${a.id}" does not exist`);
+                throw Boom.notFound(`User id "${a.id}" does not exist`);
             }
             return {
                 user: user,
@@ -125,6 +125,12 @@ export class EventRelationshipController {
     }
 
     public readonly updateSelfStatus = async (req: Request, res: Response) => {
+        const ALLOWED_STATUSES = [
+            EventAttendeeStatus.Going,
+            EventAttendeeStatus.Maybe,
+            EventAttendeeStatus.NotGoing,
+        ];
+
         const requestingUser = getRequestingUser(req);
 
         // Validate request's arguments
@@ -133,7 +139,8 @@ export class EventRelationshipController {
             throw Boom.badRequest(`Invalid event_id "${req.params.eventId}"`);
         }
         const newStatus = eventAttendeeStatusFromString(req.body.status);
-        if (!newStatus) {
+        if (!newStatus
+            || ALLOWED_STATUSES.indexOf(newStatus) === -1) {
             throw Boom.badRequest(`Invalid Event status "${req.body.status}"`);
         }
 
@@ -224,12 +231,6 @@ export class EventRelationshipController {
 
         res.status(200).json({
             message: "Role updated",
-        });
-    }
-
-    public readonly deleteAttendee = async (_req: Request, res: Response) => {
-        res.status(200).json({
-            message: "User removed from Event",
         });
     }
 }
