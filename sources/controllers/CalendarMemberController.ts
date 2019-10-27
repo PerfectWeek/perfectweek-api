@@ -256,8 +256,51 @@ export class CalendarMemberController {
         });
     }
 
-    public readonly deleteMember = async (_req: Request, res: Response) => {
-        // TODO
+    public readonly deleteMember = async (req: Request, res: Response) => {
+        const requestingUser = getRequestingUser(req);
+
+        // Validate request's parameters
+        const calendarId = parseInt(req.params.calendarId, 10);
+        if (isNaN(calendarId)) {
+            throw Boom.badRequest(`Invalid calendar_id "${req.params.calendarId}"`);
+        }
+        const userId = parseInt(req.params.userId, 10);
+        if (isNaN(userId)) {
+            throw Boom.badRequest(`Invalid user_id "${req.params.userId}"`);
+        }
+
+        // Check if the requesting User is a member of the Calendar
+        const requestingUserMembership = await this.calendarRepository.getCalendarMemberShip(
+            calendarId,
+            requestingUser.id,
+        );
+        if (!requestingUserMembership) {
+            throw Boom.forbidden("You do not have access to this Calendar");
+        }
+
+        let userToEditMembership: CalendarMember | undefined;
+        if (requestingUser.id === userId) {
+            // Requesting User removes himself
+            userToEditMembership = requestingUserMembership;
+        }
+        else {
+            // Requesting User removes someone else
+
+            // Check if Requesting User has enough rights to remove members
+            if (!this.calendarPolicy.userCanEditMembers(requestingUserMembership)) {
+                throw Boom.forbidden("You cannot remove members");
+            }
+
+            // Check if User is part of the Calendar
+            userToEditMembership = await this.calendarRepository.getCalendarMemberShip(calendarId, userId);
+            if (!userToEditMembership) {
+                throw Boom.notFound("The User to remove is not part of the Calendar");
+            }
+        }
+
+        // Remove member
+        await this.calendarRepository.deleteMembership(userToEditMembership);
+
         res.status(200).json({
             message: "Member removed",
         });
