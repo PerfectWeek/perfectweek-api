@@ -8,7 +8,6 @@ import { UserRepository } from "../models/UserRepository";
 
 import { CalendarPolicy } from "../policies/CalendarPolicy";
 
-import { CalendarInviteView } from "../views/CalendarInviteView";
 import { CalendarView } from "../views/CalendarView";
 
 import { getRequestingUser } from "../middleware/utils/getRequestingUser";
@@ -26,7 +25,6 @@ export class CalendarMemberController {
 
     private readonly calendarPolicy: CalendarPolicy;
 
-    private readonly calendarInviteView: CalendarInviteView;
     private readonly calendarView: CalendarView;
 
     constructor(
@@ -37,14 +35,12 @@ export class CalendarMemberController {
         // Policies
         calendarPolicy: CalendarPolicy,
         // Views
-        calendarInviteView: CalendarInviteView,
         calendarView: CalendarView,
     ) {
         this.calendarRepository = calendarRepository;
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
         this.calendarPolicy = calendarPolicy;
-        this.calendarInviteView = calendarInviteView;
         this.calendarView = calendarView;
     }
 
@@ -119,7 +115,7 @@ export class CalendarMemberController {
             throw Boom.conflict(`User ${alreadyInMember.user.id} is already a member of the Calendar`);
         }
 
-        // Add users in calendar
+        // Add users in Calendar
         const newMembersList = await this.calendarRepository.addMembersToCalendar(
             calendar,
             membersToAdd,
@@ -145,18 +141,6 @@ export class CalendarMemberController {
         res.status(200).json({
             message: "OK",
             members: newMembersList.map(this.calendarView.formatCalendarMember),
-        });
-    }
-
-    public readonly getPendingInvites = async (req: Request, res: Response) => {
-        const requestingUser = getRequestingUser(req);
-
-        // Retrieve pendings invites
-        const pendingInvites = await this.calendarRepository.getPendingInvitesForUser(requestingUser);
-
-        res.status(200).json({
-            message: "OK",
-            invites: pendingInvites.map(this.calendarInviteView.formatCalendarInvite),
         });
     }
 
@@ -231,6 +215,6 @@ export class CalendarMemberController {
 }
 
 type MemberQueryParam = {
-    id: number,
-    role: CalendarMemberRole,
+    id: number;
+    role: CalendarMemberRole;
 };
