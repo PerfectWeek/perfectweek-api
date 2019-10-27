@@ -28,6 +28,10 @@ export class CalendarPolicy {
         return CalendarPolicy.memberIsAdmin(calendarMembership);
     }
 
+    public readonly userCanEditMembers = (calendarMembership: CalendarMember): boolean => {
+        return CalendarPolicy.memberIsAdmin(calendarMembership);
+    }
+
     //
     // Helpers
     //

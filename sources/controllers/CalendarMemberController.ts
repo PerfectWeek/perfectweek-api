@@ -2,6 +2,8 @@ import Boom from "@hapi/boom";
 import { Request, Response } from "express";
 import { isArray } from "util";
 
+import { CalendarMember } from "../models/entities/CalendarMember";
+
 import { CalendarRepository } from "../models/CalendarRepository";
 import { EventRepository } from "../models/EventRepository";
 import { UserRepository } from "../models/UserRepository";
@@ -199,8 +201,56 @@ export class CalendarMemberController {
         });
     }
 
-    public readonly editMemberRole = async (_req: Request, res: Response) => {
-        // TODO
+    public readonly editMemberRole = async (req: Request, res: Response) => {
+        const requestingUser = getRequestingUser(req);
+
+        // Validate request's parameters
+        const calendarId = parseInt(req.params.calendarId, 10);
+        if (isNaN(calendarId)) {
+            throw Boom.badRequest(`Invalid calendar_id "${req.params.calendarId}"`);
+        }
+        const userId = parseInt(req.params.userId, 10);
+        if (isNaN(userId)) {
+            throw Boom.badRequest(`Invalid user_id "${req.params.userId}"`);
+        }
+        const role = calendarMemberRoleFromString(req.body.role);
+        if (!role) {
+            throw Boom.badRequest(`Invalid role "${req.body.role}"`);
+        }
+
+        // Check if the requesting User is a member of the Calendar
+        const requestingUserMembership = await this.calendarRepository.getCalendarMemberShip(
+            calendarId,
+            requestingUser.id,
+        );
+        if (!requestingUserMembership) {
+            throw Boom.forbidden("You do not have access to this Calendar");
+        }
+
+        // Check if Requesting User has enough rights to edit roles
+        if (!this.calendarPolicy.userCanEditMembers(requestingUserMembership)) {
+            throw Boom.forbidden("You cannot edit members' roles");
+        }
+
+        let userToEditMembership: CalendarMember | undefined;
+        if (requestingUser.id === userId) {
+            // Requesting User edits himself
+            userToEditMembership = requestingUserMembership;
+        }
+        else {
+            // Requesting User edits someone else
+
+            // Check if User is part of the Calendar
+            userToEditMembership = await this.calendarRepository.getCalendarMemberShip(calendarId, userId);
+            if (!userToEditMembership) {
+                throw Boom.notFound("The User to edit is not part of the Calendar");
+            }
+        }
+
+        // Edit role
+        userToEditMembership.role = role;
+        await this.calendarRepository.updateMembership(userToEditMembership);
+
         res.status(200).json({
             message: "Role edited",
         });
