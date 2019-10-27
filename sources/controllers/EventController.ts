@@ -92,7 +92,7 @@ export class EventController {
         if (!visibility) {
             throw Boom.badRequest("Invalid visibility");
         }
-        // Validate optionnal parameter "calendar_id"
+        // Validate optional parameter "calendar_id"
         const calendarId = req.body.calendar_id !== undefined
             ? parseInt(req.body.calendar_id, 10)
             : undefined;
