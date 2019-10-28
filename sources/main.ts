@@ -41,9 +41,9 @@ import { EventRelationshipController } from "./controllers/EventRelationshipCont
 import { FriendController } from "./controllers/FriendController";
 import { UserController } from "./controllers/UserController";
 import { UserImageController } from "./controllers/UserImageController";
-
 import * as AuthenticatedOnlyMiddleware from "./middleware/authenticatedOnlyMiddleware";
 import * as ImageUploadMiddleware from "./middleware/imageUploadMiddleware";
+import { UserFriendship } from "./models/entities/UserFriendship";
 
 const CURRENT_DIRECTORY: string = __dirname;
 
@@ -134,6 +134,7 @@ function createServer(
     const userProfileImageStorageService = new ImageStorageService(
         assetsInfo.users.profile.baseDir,
     );
+    const userFriendship = new UserFriendship();
 
     // Create Views
     const calendarInviteView = new CalendarInviteView();
@@ -200,7 +201,9 @@ function createServer(
         eventPolicy,
         eventView,
     );
-    const friendController = new FriendController();
+    const friendController = new FriendController(
+        userFriendship,
+    );
     const userController = new UserController(
         userRepository,
         emailValidator,
