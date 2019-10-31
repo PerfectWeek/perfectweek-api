@@ -6,11 +6,7 @@ PerfectWeek web API
 
 ## Prerequisites
 
-- GIT LFS: see [https://git-lfs.github.com/](https://git-lfs.github.com/)
 - docker, docker-compose: see [https://docs.docker.com/install/overview/](https://docs.docker.com/install/overview/)
-
-> Be sure to enable GIT LFS. If you don't, some assets will be incorrectly fetched.
-> You can do so by running `git lfs install`
 
 ## Quickstart
 
