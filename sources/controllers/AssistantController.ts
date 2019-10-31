@@ -10,6 +10,7 @@ import { DateService } from "../services/DateService";
 import { TimeSlotView } from "../views/TimeSlotView";
 
 import { EventAttendeeStatus } from "../core/enums/EventAttendeeStatus";
+import { eventTypeFromString } from "../core/enums/EventType";
 
 import { getRequestingUser } from "../middleware/utils/getRequestingUser";
 
@@ -62,9 +63,9 @@ export class AssistantController {
         if (!this.dateService.isValidDate(slotMaxDate)) {
             throw Boom.badRequest(`Invalid max_time "${req.query.max_time}"`);
         }
-        const eventType: string | undefined = req.query.type;
+        const eventType = eventTypeFromString(req.query.type);
         if (!eventType) {
-            throw Boom.badRequest('Missing "type"');
+            throw Boom.badRequest(`Invalid "type" ${req.query.type}`);
         }
         const nbSlots = Number.parseInt(req.query.limit || AssistantController.DEFAULT_SLOT_LIMIT, 10);
         if (isNaN(nbSlots) || nbSlots <= 0) {
