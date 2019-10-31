@@ -4,6 +4,7 @@ import { isUndefined } from "util";
 
 import { EventAttendeeRole } from "../core/enums/EventAttendeeRole";
 import { EventAttendeeStatus, eventAttendeeStatusFromString } from "../core/enums/EventAttendeeStatus";
+import { eventTypeFromString } from "../core/enums/EventType";
 import { EventVisibility, eventVisibilityFromString } from "../core/enums/EventVisibility";
 
 import { EventView } from "../views/EventView";
@@ -66,7 +67,7 @@ export class EventController {
         const eventName = trim(req.body.name);
         const eventStart = req.body.start_time;
         const eventEnd = req.body.end_time;
-        const eventType = req.body.type;
+        const eventType = eventTypeFromString(req.body.type);
         const eventVisibility = req.body.visibility;
         const eventDescription = req.body.description;
         const eventLocation = req.body.location;
@@ -78,7 +79,7 @@ export class EventController {
             || !eventVisibility
             || !eventColor
         ) {
-            throw Boom.badRequest("Missing fields for Event");
+            throw Boom.badRequest("Missing fields for Event, or invalid type");
         }
 
         // Validate Event dates
@@ -290,7 +291,7 @@ export class EventController {
         const eventName = trim(req.body.name);
         const eventStart = req.body.start_time;
         const eventEnd = req.body.end_time;
-        const eventType = req.body.type;
+        const eventType = eventTypeFromString(req.body.type);
         const eventVisibility = req.body.visibility;
         const eventDescription = req.body.description;
         const eventLocation = req.body.location;
@@ -302,7 +303,7 @@ export class EventController {
             || !eventVisibility
             || !eventColor
         ) {
-            throw Boom.badRequest("Missing fields for Event");
+            throw Boom.badRequest("Missing fields for Event, or invalid type");
         }
 
         // Validate Event dates

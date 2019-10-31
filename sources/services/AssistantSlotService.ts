@@ -1,5 +1,6 @@
 import { Event } from "../models/entities/Event";
 
+import { EventType } from "../core/enums/EventType";
 import { TimeSlot } from "../core/TimeSlot";
 import { ITimeSlotPreferences } from "../core/utils/TimeSlotPreferences";
 
@@ -195,6 +196,6 @@ type SlotOptions = {
     afterDate: Date,
     beforeDate: Date,
     duration: number,
-    type: string,
+    type: EventType,
     timezone: number,
 };
