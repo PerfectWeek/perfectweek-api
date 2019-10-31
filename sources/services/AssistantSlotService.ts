@@ -11,7 +11,7 @@ export class AssistantSlotService {
     private static readonly TRAVEL_TIME = 30 * AssistantSlotService.MINUTES; // TODO: Use location for real
 
     /**
-     * Find best slots to organize and Event
+     * Find best slots to organize an Event
      *
      * @param slotOptions
      * @param events    All existing events to consider when looking for slots availability
