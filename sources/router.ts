@@ -297,7 +297,7 @@ export function createRouter(
     // Assistant
     //
     router.get(
-        "/assistant/find-best-slots",
+        "/assistant/find-best-slots/:calendarId",
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(assistantController.findBestSlots),
     );

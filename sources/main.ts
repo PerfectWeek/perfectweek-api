@@ -8,6 +8,7 @@ import { Server } from "./Server";
 
 import { CalendarView } from "./views/CalendarView";
 import { EventView } from "./views/EventView";
+import { TimeSlotView } from './views/TimeSlotView';
 import { UserView } from "./views/UserView";
 
 import { CalendarRepository } from "./models/CalendarRepository";
@@ -15,6 +16,7 @@ import { EventRepository } from "./models/EventRepository";
 import { PendingUserRepository } from "./models/PendingUserRepository";
 import { UserRepository } from "./models/UserRepository";
 
+import { AssistantSlotService } from './services/AssistantSlotService';
 import { DateService } from "./services/DateService";
 import { ImageStorageService } from "./services/ImageStorageService";
 import { JwtService } from "./services/JwtService";
@@ -121,6 +123,7 @@ function createServer(
     const passwordValidator = new PasswordValidator();
 
     // Create Services
+    const assistantSlotService = new AssistantSlotService();
     const dateService = new DateService();
     const jwtService = new JwtService(jwtSecretKey);
     const passwordService = new PasswordService();
@@ -137,13 +140,20 @@ function createServer(
     // Create Views
     const calendarView = new CalendarView();
     const eventView = new EventView();
+    const timeSlotView = new TimeSlotView();
     const userView = new UserView();
 
     // Create Controllers
     const apiEndpointController = new ApiEndpointController(
         assetsInfo.favicon.image,
     );
-    const assistantController = new AssistantController();
+    const assistantController = new AssistantController(
+        calendarRepository,
+        eventRepository,
+        assistantSlotService,
+        dateService,
+        timeSlotView,
+    );
     const authLocalController = new AuthLocalController(
         pendingUserRepository,
         userRepository,
