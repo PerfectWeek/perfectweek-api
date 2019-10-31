@@ -1,77 +1,91 @@
 import Boom from "@hapi/boom";
+
 import { Request, Response } from "express";
 import { getRequestingUser } from "../middleware/utils/getRequestingUser";
-import { UserFriendship } from "../models/entities/UserFriendship";
+import {UserRepository} from "../models/UserRepository";
+import {UserView} from "../views/UserView";
 
 export class FriendController {
 
-    private  readonly userFriendship: UserFriendship;
+    private readonly userRepository: UserRepository;
+    private readonly userView: UserView;
 
-    constructor(userFriendship: UserFriendship) {
-        this.userFriendship = userFriendship;
+    constructor(userRepository: UserRepository, userView: UserView){
+        this.userRepository = userRepository;
+        this.userView = userView;
     }
 
     public readonly inviteUser = async (req: Request, res: Response) => {
-        this.userFriendship.requestingUser  = getRequestingUser(req);
-        const userId = parseInt(req.params.userId, 10);
-        if (isNaN(userId)) {
-            throw Boom.notFound(`User id ${userId} not found`);
+        const user = getRequestingUser(req);
+
+        const friendId = parseInt(req.params.userId, 10);
+        if (isNaN(friendId)) {
+            throw Boom.notFound(`User id "${req.params.userId}" not found A`);
         }
-        if (userId === this.userFriendship.requestingUser.id) {
-            throw Boom.notFound("Operation forbidden");
+
+
+        const friend = await this.userRepository.getUserById(friendId);
+        if (!friend) {
+            throw Boom.notFound(`User id "${req.params.userId}" not found B`);
         }
+
+        const existingFriendship = await this.userRepository.getUserFriendship(user.id, friend.id);
+        if (existingFriendship) {
+            throw Boom.forbidden("You cannot invite this user again");
+        }
+
+        const newFriendship = this.userRepository.createUserFriendship(user.id, friendId);
+        const friendsQuery: () => { id: number; confirmed: boolean } = (() => {
+            return {
+                id: friendId,
+                confirmed: newFriendship.confirmed,
+            };
+        });
         res.status(200).json({
-            userId: userId,
-            message: `Invite sent to Id : ${userId}` ,
+            test: friendsQuery,
+            message: "Invitation Sent",
         });
     }
 
-    public readonly inviteAccept = async (req: Request, res: Response) => {
-        this.userFriendship.requestingUser = getRequestingUser(req);
-        const userId = parseInt(req.params.userId, 10);
-        if (isNaN(userId)) {
-            throw Boom.notFound(`User id ${userId} not found`);
-        }
-        this.userFriendship.requestedId = userId;
-        this.userFriendship.confirmed = true;
+    public readonly inviteAccept = async (_req: Request, res: Response) => {
         res.status(200).json({
-            message: `Invitation from Id : ${userId} accepted`,
+            message: "Invitation Accepted",
         });
     }
 
-    public readonly inviteDecline = async (req: Request, res: Response) => {
-        this.userFriendship.requestingUser = getRequestingUser(req);
-        const userId = parseInt(req.params.userId, 10);
-        if (isNaN(userId)) {
-            throw Boom.notFound(`User id ${userId} not found`);
-        }
-        this.userFriendship.requestedId = userId;
-        this.userFriendship.confirmed = false;
+    public readonly inviteDecline = async (_req: Request, res: Response) => {
         res.status(200).json({
-            message: `Invitation from Id : ${userId} declined`,
+            message: "Invitation declined",
         });
     }
 
     public readonly getAllFriends = async (req: Request, res: Response) => {
-        this.userFriendship.requestingUser = getRequestingUser(req);
+        const user = getRequestingUser(req);
+
+
+        const status: true | false | undefined = true;
+        const friends = await this.userRepository.getAllFriendsForUserId(user.id, status);
+
+
         res.status(200).json({
-            message: "Get All Friends",
+            message: "OK",
+            friends: friends.map(this.userView.formatFriendship),
         });
     }
 
     public readonly deleteFriend = async (req: Request, res: Response) => {
-        this.userFriendship.requestingUser = getRequestingUser(req);
-        const userId = parseInt(req.params.userId, 10);
-        if (isNaN(userId)) {
-            throw Boom.notFound(`User id ${userId} not found`);
+        const user = getRequestingUser(req);
+
+        const friendId = parseInt(req.params.userId, 10);
+        if (isNaN(friendId)) {
+            throw Boom.notFound(`User id "${req.params.userId}" not found A`);
         }
-        if (userId === this.userFriendship.requestingUser.id) {
-            throw Boom.notFound("Operation forbidden");
-        }
-        this.userFriendship.requestedId = userId;
-        this.userFriendship.confirmed = false;
+
+        //Delete dans la db
+
+        await this.userRepository.deleteUserFriendship(user.id, friendId);
         res.status(200).json({
-            message: `Friend with Id : ${userId} deleted`,
+            message: "Friend removed",
         });
     }
 }

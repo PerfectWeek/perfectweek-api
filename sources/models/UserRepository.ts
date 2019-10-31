@@ -58,6 +58,43 @@ export class UserRepository {
             }));
     }
 
+    public readonly createUserFriendship = async  (requestingUserId: number, targetUserId: number): Promise<UserFriendship> => {
+        return this.conn
+            .getRepository(UserFriendship)
+            .save(new UserFriendship({
+                requestingId: requestingUserId,
+                requestedId: targetUserId,
+                confirmed: false,
+            }));
+    }
+
+    public readonly getUserFriendship = async  (requestingUserId: number, targetUserId: number): Promise<UserFriendship | undefined> => {
+        return this.conn
+            .getRepository(UserFriendship)
+            .findOne({ where: {
+                        requestingId: requestingUserId,
+                        requestedId: targetUserId,
+                    confirmed: true,
+                }});
+    }
+
+    public readonly updateUserFriendship = async  (requestingUserId: number,
+                                                   targetUserId: number,
+                                                   confirmed: boolean): Promise<any> => {
+        return this.conn
+            .getRepository(UserFriendship)
+            .save({requestingId: requestingUserId, requestedId: targetUserId, confirmed: confirmed});
+    }
+
+    public readonly deleteUserFriendship = async  (_requestingUser: number, _targetUser: number): Promise<any> => {
+        return this.conn
+            .getRepository(UserFriendship);
+    }
+
+    public readonly getAllFriendsForUserId = async  (_requestingUser: number, _status: boolean): Promise<any> => {
+        return ;
+    }
+
     public readonly deleteUser = async (userId: number): Promise<void> => {
         await this.conn.transaction(async entityManager => {
             // Delete Friendships

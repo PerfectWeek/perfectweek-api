@@ -1,4 +1,5 @@
 import { User } from "../models/entities/User";
+import {UserFriendship} from "../models/entities/UserFriendship";
 
 export class UserView {
 
@@ -14,6 +15,12 @@ export class UserView {
         return {
             id: user.id,
             name: user.name,
+        };
+    }
+
+    public readonly formatFriendship = (userFriendship: UserFriendship): any => {
+        return {
+            requestedUser: userFriendship.requestedUser,
         };
     }
 }
