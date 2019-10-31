@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
-import { BASE_TIME_SLOT_PREFERENCES, TimeSlotPreferences } from "../../core/utils/TimeSlotPreferences";
+import { BASE_TIME_SLOT_PREFERENCES, ITimeSlotPreferences } from "../../core/utils/TimeSlotPreferences";
 
 import { CalendarEntry } from "./CalendarEntry";
 import { CalendarMember } from "./CalendarMember";
@@ -24,7 +24,7 @@ export class Calendar {
         name: "time_slot_preferences",
         default: BASE_TIME_SLOT_PREFERENCES,
     })
-    public timeSlotPreferences: TimeSlotPreferences;
+    public timeSlotPreferences: ITimeSlotPreferences;
 
     public entries?: CalendarEntry[];
     public members?: CalendarMember[];
