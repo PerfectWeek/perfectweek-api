@@ -148,17 +148,22 @@ export class EventRepository {
         return event;
     }
 
-    public readonly getAllEventsForUserWithCalendars = async (
+    public readonly getAllEventsForUser = async (
         userId: number,
         eventOptions?: EventOptions,
+        withCalendars?: boolean,
     ): Promise<EventAttendee[]> => {
         let query = this.conn
             .getRepository(EventAttendee)
             .createQueryBuilder("ea")
             .innerJoinAndMapOne("ea.event", "events", "e", "ea.event_id = e.id")
-            .where("ea.user_id = :id", { id: userId })
-            .leftJoinAndMapMany("e.owningCalendars", "calendar_entries", "ce", "ce.event_id = e.id")
-            .leftJoinAndMapOne("ce.calendar", "calendars", "c", "c.id = ce.calendar_id");
+            .where("ea.user_id = :id", { id: userId });
+
+        if (withCalendars) {
+            query = query
+                .leftJoinAndMapMany("e.owningCalendars", "calendar_entries", "ce", "ce.event_id = e.id")
+                .leftJoinAndMapOne("ce.calendar", "calendars", "c", "c.id = ce.calendar_id");
+        }
 
         if (eventOptions) {
             if (eventOptions.afterDate) {

@@ -258,7 +258,7 @@ export class EventController {
         }
 
         // Get corresponding events
-        const eventStatuses = await this.eventRepository.getAllEventsForUserWithCalendars(
+        const eventStatuses = await this.eventRepository.getAllEventsForUser(
             requestingUser.id,
             {
                 afterDate: afterDate,
@@ -266,8 +266,9 @@ export class EventController {
                 exceptCalendarIds: exceptCalendarIds,
                 onlyCalendarIds: onlyCalendarIds,
                 // We made sure that no statuses are undefined previously
-                onlyStatuses: <EventAttendeeStatus[] | undefined> onlyStatuses,
+                onlyStatuses: <EventAttendeeStatus[] | undefined>onlyStatuses,
             },
+            true,
         );
 
         res.status(200).json({
