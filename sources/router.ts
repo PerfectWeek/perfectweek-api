@@ -73,22 +73,22 @@ export function createRouter(
     router.get(
         "/users/me",
         asyncHandler(authenticatedOnlyMiddleware),
-        userController.getUser,
+        userController.getSelfUser,
     );
     router.put(
         "/users/me",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(userController.updateUser),
+        asyncHandler(userController.updateSelfUser),
     );
     router.delete(
         "/users/me",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(userController.deleteUser),
+        asyncHandler(userController.deleteSelfUser),
     );
     router.put(
         "/users/me/timezone",
         asyncHandler(authenticatedOnlyMiddleware),
-        asyncHandler(userController.updateUserTimezone),
+        asyncHandler(userController.updateSelfUserTimezone),
     );
 
     //
@@ -103,6 +103,15 @@ export function createRouter(
     router.get(
         "/users/:userId/images/profile",
         asyncHandler(userImageController.getImage),
+    );
+
+    //
+    // Other Users (not self)
+    //
+    router.get(
+        "/users/:userId",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(userController.getUser),
     );
 
     //
