@@ -8,7 +8,7 @@ import { Server } from "./Server";
 
 import { CalendarView } from "./views/CalendarView";
 import { EventView } from "./views/EventView";
-import { TimeSlotView } from './views/TimeSlotView';
+import { TimeSlotView } from "./views/TimeSlotView";
 import { UserView } from "./views/UserView";
 
 import { CalendarRepository } from "./models/CalendarRepository";
@@ -16,7 +16,7 @@ import { EventRepository } from "./models/EventRepository";
 import { PendingUserRepository } from "./models/PendingUserRepository";
 import { UserRepository } from "./models/UserRepository";
 
-import { AssistantSlotService } from './services/AssistantSlotService';
+import { AssistantSlotService } from "./services/AssistantSlotService";
 import { DateService } from "./services/DateService";
 import { ImageStorageService } from "./services/ImageStorageService";
 import { JwtService } from "./services/JwtService";

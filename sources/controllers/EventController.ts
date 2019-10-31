@@ -266,7 +266,7 @@ export class EventController {
                 exceptCalendarIds: exceptCalendarIds,
                 onlyCalendarIds: onlyCalendarIds,
                 // We made sure that no statuses are undefined previously
-                onlyStatuses: <EventAttendeeStatus[] | undefined>onlyStatuses,
+                onlyStatuses: <EventAttendeeStatus[] | undefined> onlyStatuses,
             },
             true,
         );
