@@ -92,9 +92,8 @@ export class AssistantController {
                 afterDate: slotMinDate,
                 beforeDate: slotMaxDate,
                 onlyStatuses: [
-                    EventAttendeeStatus.NotGoing,
-                    EventAttendeeStatus.Invited,
-                    EventAttendeeStatus.None,
+                    EventAttendeeStatus.Going,
+                    EventAttendeeStatus.Maybe,
                 ],
             },
             false,

@@ -86,8 +86,8 @@ export class AssistantSlotService {
         slotEndTime: Date,
     ): boolean => {
         return events.every(event => {
-            return slotStartTime < event.endTime
-                && slotEndTime > event.startTime;
+            return slotStartTime > event.endTime
+                || slotEndTime < event.startTime;
         });
     }
 
