@@ -17,12 +17,12 @@ export class AssistantSlotService {
      * Find best slots to organize an Event
      *
      * @param slotOptions
-     * @param events    All existing events to consider when looking for slots availability
-     * @param timeSlotPreferences   The preferences matrices
+     * @param alreadyAttendingEvents    All existing events to consider when looking for slots availability
+     * @param timeSlotPreferences       The preferences matrices
      */
     public readonly findBestSlot = (
         slotOptions: SlotOptions,
-        events: Event[],
+        alreadyAttendingEvents: Event[],
         timeSlotPreferences: ITimeSlotPreferences,
     ): TimeSlot[] => {
         const slots = [];
@@ -50,7 +50,7 @@ export class AssistantSlotService {
             if (AssistantUtils.slotAvailableForAll(
                 new Date(slotStartTime.getTime() - AssistantSlotService.TRAVEL_TIME),
                 new Date(slotEndTime.getTime() + AssistantSlotService.TRAVEL_TIME),
-                events,
+                alreadyAttendingEvents,
             )) {
                 // Compute the score of the available slot
                 const score = AssistantSlotService.computeSlotScore(
