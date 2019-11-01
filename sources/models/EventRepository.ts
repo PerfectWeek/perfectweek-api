@@ -2,6 +2,7 @@ import { Connection } from "typeorm";
 
 import { EventAttendeeRole } from "../core/enums/EventAttendeeRole";
 import { EventAttendeeStatus } from "../core/enums/EventAttendeeStatus";
+import { EventVisibility } from "../core/enums/EventVisibility";
 
 import { Calendar } from "./entities/Calendar";
 import { CalendarEntry } from "./entities/CalendarEntry";
@@ -248,6 +249,28 @@ export class EventRepository {
             })
             .getMany();
     }
+
+    public readonly getPublicEvents = async (
+        options?: PublicEventOptions,
+    ): Promise<Event[]> => {
+        let query = this.conn
+            .getRepository(Event)
+            .createQueryBuilder("e")
+            .where("e.visibility = :visibility", { visibility: EventVisibility.Public });
+
+        if (options) {
+            if (options.afterDate) {
+                query = query
+                    .andWhere("e.end_time >= :afterDate", { afterDate: options.afterDate });
+            }
+            if (options.beforeDate) {
+                query = query
+                    .andWhere("e.start_time <= :beforeDate", { beforeDate: options.beforeDate });
+            }
+        }
+
+        return query.getMany();
+    }
 }
 
 //
@@ -271,6 +294,11 @@ type EventOptions = {
     onlyCalendarIds?: number[],
     exceptCalendarIds?: number[],
     onlyStatuses?: EventAttendeeStatus[],
+};
+
+type PublicEventOptions = {
+    afterDate?: Date,
+    beforeDate?: Date,
 };
 
 //

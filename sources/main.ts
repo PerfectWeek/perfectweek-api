@@ -7,6 +7,7 @@ import * as Router from "./router";
 import { Server } from "./Server";
 
 import { CalendarView } from "./views/CalendarView";
+import { EventSuggestionView } from "./views/EventSuggestionView";
 import { EventView } from "./views/EventView";
 import { TimeSlotView } from "./views/TimeSlotView";
 import { UserView } from "./views/UserView";
@@ -16,7 +17,8 @@ import { EventRepository } from "./models/EventRepository";
 import { PendingUserRepository } from "./models/PendingUserRepository";
 import { UserRepository } from "./models/UserRepository";
 
-import { AssistantSlotService } from "./services/AssistantSlotService";
+import { AssistantEventSuggestionService } from "./services/assistant/AssistantEventSuggestionService";
+import { AssistantSlotService } from "./services/assistant/AssistantSlotService";
 import { DateService } from "./services/DateService";
 import { ImageStorageService } from "./services/ImageStorageService";
 import { JwtService } from "./services/JwtService";
@@ -123,6 +125,7 @@ function createServer(
     const passwordValidator = new PasswordValidator();
 
     // Create Services
+    const assistantEventSuggestionService = new AssistantEventSuggestionService();
     const assistantSlotService = new AssistantSlotService();
     const dateService = new DateService();
     const jwtService = new JwtService(jwtSecretKey);
@@ -140,6 +143,7 @@ function createServer(
     // Create Views
     const calendarView = new CalendarView();
     const eventView = new EventView();
+    const eventSuggestionView = new EventSuggestionView(eventView);
     const timeSlotView = new TimeSlotView();
     const userView = new UserView();
 
@@ -150,8 +154,10 @@ function createServer(
     const assistantController = new AssistantController(
         calendarRepository,
         eventRepository,
+        assistantEventSuggestionService,
         assistantSlotService,
         dateService,
+        eventSuggestionView,
         timeSlotView,
     );
     const authLocalController = new AuthLocalController(

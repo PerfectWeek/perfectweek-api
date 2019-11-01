@@ -4,9 +4,11 @@ import { Request, Response } from "express";
 import { CalendarRepository } from "../models/CalendarRepository";
 import { EventRepository } from "../models/EventRepository";
 
-import { AssistantSlotService } from "../services/AssistantSlotService";
+import { AssistantEventSuggestionService } from "../services/assistant/AssistantEventSuggestionService";
+import { AssistantSlotService } from "../services/assistant/AssistantSlotService";
 import { DateService } from "../services/DateService";
 
+import { EventSuggestionView } from "../views/EventSuggestionView";
 import { TimeSlotView } from "../views/TimeSlotView";
 
 import { EventAttendeeStatus } from "../core/enums/EventAttendeeStatus";
@@ -17,13 +19,16 @@ import { getRequestingUser } from "../middleware/utils/getRequestingUser";
 export class AssistantController {
 
     private static readonly DEFAULT_SLOT_LIMIT = "10";
+    private static readonly DEFAULT_SUGGESTION_LIMIT = "10";
 
     private readonly calendarRepository: CalendarRepository;
     private readonly eventRepository: EventRepository;
 
+    private readonly assistantEventSuggestionService: AssistantEventSuggestionService;
     private readonly assistantSlotService: AssistantSlotService;
     private readonly dateService: DateService;
 
+    private readonly eventSuggestionView: EventSuggestionView;
     private readonly timeSlotView: TimeSlotView;
 
     constructor(
@@ -31,15 +36,19 @@ export class AssistantController {
         calendarRepository: CalendarRepository,
         eventRepository: EventRepository,
         // Services
+        assistantEventSuggestionService: AssistantEventSuggestionService,
         assistantSlotService: AssistantSlotService,
         dateService: DateService,
         // Views
+        eventSuggestionView: EventSuggestionView,
         timeSlotView: TimeSlotView,
     ) {
         this.calendarRepository = calendarRepository;
         this.eventRepository = eventRepository;
+        this.assistantEventSuggestionService = assistantEventSuggestionService;
         this.assistantSlotService = assistantSlotService;
         this.dateService = dateService;
+        this.eventSuggestionView = eventSuggestionView;
         this.timeSlotView = timeSlotView;
     }
 
@@ -138,10 +147,58 @@ export class AssistantController {
         });
     }
 
-    public readonly eventSuggestion = async (_req: Request, res: Response) => {
-        // TODO
+    public readonly eventSuggestion = async (req: Request, res: Response) => {
+        const requestingUser = getRequestingUser(req);
+
+        // Validate request's parameters
+        const eventsMinDate = new Date(req.query.min_time);
+        if (!this.dateService.isValidDate(eventsMinDate)) {
+            throw Boom.badRequest(`Invalid min_time "${req.query.min_time}"`);
+        }
+        const eventsMaxDate = new Date(req.query.max_time);
+        if (!this.dateService.isValidDate(eventsMaxDate)) {
+            throw Boom.badRequest(`Invalid max_time "${req.query.max_time}"`);
+        }
+        const nbSlots = Number.parseInt(req.query.limit || AssistantController.DEFAULT_SUGGESTION_LIMIT, 10);
+        if (isNaN(nbSlots) || nbSlots <= 0) {
+            throw Boom.badRequest(`Invalid limit "${req.query.limit}"`);
+        }
+
+        // Get all Events the User is attending during this period
+        const rawAttendingEvents = await this.eventRepository.getAllEventsForUser(
+            requestingUser.id,
+            {
+                afterDate: eventsMinDate,
+                beforeDate: eventsMaxDate,
+                onlyStatuses: [
+                    EventAttendeeStatus.Going,
+                    EventAttendeeStatus.Maybe,
+                ],
+            },
+        );
+        const attendingEvents = rawAttendingEvents.map(ea => {
+            if (!ea.event) {
+                throw new Error("EventAttendee.Event should be defined");
+            }
+
+            return ea.event;
+        });
+
+        // Get all available Event during this time period
+        const availableEvents = await this.eventRepository.getPublicEvents({
+            afterDate: eventsMinDate,
+            beforeDate: eventsMaxDate,
+        });
+
+        // Get event suggestions for this time period
+        const eventSuggestions = this.assistantEventSuggestionService.eventSuggestions(
+            availableEvents,
+            attendingEvents,
+        );
+
         res.status(200).json({
             message: "OK",
+            suggestions: eventSuggestions.map(this.eventSuggestionView.formatSuggestion),
         });
     }
 
