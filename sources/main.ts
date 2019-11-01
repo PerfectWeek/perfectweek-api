@@ -45,70 +45,35 @@ import { FriendController } from "./controllers/FriendController";
 import { UserController } from "./controllers/UserController";
 import { UserImageController } from "./controllers/UserImageController";
 
+import { Config, loadConfig } from "./config";
+
 import * as AuthenticatedOnlyMiddleware from "./middleware/authenticatedOnlyMiddleware";
 import * as ImageUploadMiddleware from "./middleware/imageUploadMiddleware";
 
 const CURRENT_DIRECTORY: string = __dirname;
 
 function main(): void {
+    const config = loadConfig();
     const dbConfig = DbConfig.load("../ormconfig.js");
-
-    const apiPort = parseInt(process.env.PORT || "", 10);
-    if (isNaN(apiPort)) {
-        throw new Error('Missing environment variable "PORT"');
-    }
-
-    const jwtSecretKey = process.env.JWT_SECRET_KEY;
-    if (!jwtSecretKey) {
-        throw new Error('Missing environment variable "JWT_SECRET_KEY"');
-    }
-
-    const ASSETS_ROOT_DIR = process.env.ASSETS_ROOT_DIR;
-    if (!ASSETS_ROOT_DIR) {
-        throw new Error('Missing environment variable "ASSETS_ROOT_DIR"');
-    }
-
-    const ASSETS_INFO: AssetsInfo = {
-        favicon: {
-            image: `${CURRENT_DIRECTORY}/assets/favicon.ico`,
-        },
-        MULTER_UPLOAD_DIR: `${ASSETS_ROOT_DIR}/uploads/images`,
-        calendars: {
-            icon: {
-                baseDir: `${ASSETS_ROOT_DIR}/images/calendars/icon`,
-                default: `${CURRENT_DIRECTORY}/assets/images/calendar_icon_default.jpg`,
-            },
-        },
-        events: {
-            image: {
-                baseDir: `${ASSETS_ROOT_DIR}/images/events/image`,
-                default: `${CURRENT_DIRECTORY}/assets/images/event_image_default.jpg`,
-            },
-        },
-        users: {
-            profile: {
-                baseDir: `${ASSETS_ROOT_DIR}/images/users/profile`,
-                default: `${CURRENT_DIRECTORY}/assets/images/user_profile_default.jpg`,
-            },
-        },
-    };
 
     createConnection(dbConfig).then((conn: Connection) => {
         console.info("[LOG] Connected to database");
 
-        const server = createServer(conn, jwtSecretKey, ASSETS_INFO);
+        const server = createServer(conn, config);
 
-        server.start(apiPort, () => {
-            console.info(`[LOG] Server started on port ${apiPort}`);
+        server.start(config.API_PORT, () => {
+            console.info(`[LOG] Server started on port ${config.API_PORT}`);
         });
     });
 }
 
 function createServer(
     conn: Connection,
-    jwtSecretKey: string,
-    assetsInfo: AssetsInfo,
+    config: Config,
 ): Server {
+    // Assets info
+    const assetsInfo = buildAssetsInfo(config.ASSETS_ROOT_DIR);
+
     // Create Repositories
     const calendarRepository = new CalendarRepository(conn);
     const eventRepository = new EventRepository(conn);
@@ -128,7 +93,7 @@ function createServer(
     const assistantEventSuggestionService = new AssistantEventSuggestionService();
     const assistantSlotService = new AssistantSlotService();
     const dateService = new DateService();
-    const jwtService = new JwtService(jwtSecretKey);
+    const jwtService = new JwtService(config.JWT_SECRET_KEY);
     const passwordService = new PasswordService();
     const calendarIconImageStorageService = new ImageStorageService(
         assetsInfo.calendars.icon.baseDir,
@@ -259,30 +224,33 @@ function createServer(
     return new Server(router);
 }
 
-type AssetsInfo = {
-    favicon: {
-        image: string;
+function buildAssetsInfo(assetsRootDir: string) {
+    return {
+        favicon: {
+            image: `${CURRENT_DIRECTORY}/assets/favicon.ico`,
+        },
+        MULTER_UPLOAD_DIR: `${assetsRootDir}/uploads/images`,
+        calendars: {
+            icon: {
+                baseDir: `${assetsRootDir}/images/calendars/icon`,
+                default: `${CURRENT_DIRECTORY}/assets/images/calendar_icon_default.jpg`,
+            },
+        },
+        events: {
+            image: {
+                baseDir: `${assetsRootDir}/images/events/image`,
+                default: `${CURRENT_DIRECTORY}/assets/images/event_image_default.jpg`,
+            },
+        },
+        users: {
+            profile: {
+                baseDir: `${assetsRootDir}/images/users/profile`,
+                default: `${CURRENT_DIRECTORY}/assets/images/user_profile_default.jpg`,
+            },
+        },
+
     };
-    MULTER_UPLOAD_DIR: string;
-    calendars: {
-        icon: {
-            baseDir: string;
-            default: string;
-        };
-    };
-    events: {
-        image: {
-            baseDir: string;
-            default: string;
-        };
-    };
-    users: {
-        profile: {
-            baseDir: string;
-            default: string;
-        };
-    };
-};
+}
 
 // Run only if executed directly (e.g: `ts-node sources/main.ts`)
 if (require.main === module) {
