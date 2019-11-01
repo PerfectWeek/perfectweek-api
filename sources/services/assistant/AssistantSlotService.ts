@@ -1,10 +1,12 @@
-import { Event } from "../models/entities/Event";
+import { Event } from "../../models/entities/Event";
 
-import { EventType } from "../core/enums/EventType";
-import { TimeSlot } from "../core/TimeSlot";
-import { ITimeSlotPreferences } from "../core/utils/TimeSlotPreferences";
+import { EventType } from "../../core/enums/EventType";
+import { TimeSlot } from "../../core/TimeSlot";
+import { ITimeSlotPreferences } from "../../core/utils/TimeSlotPreferences";
 
-import { Normalization } from "../utils/maths/Normalization";
+import { Normalization } from "../../utils/maths/Normalization";
+
+import { AssistantUtils } from "./AssistantUtils";
 
 export class AssistantSlotService {
 
@@ -33,7 +35,7 @@ export class AssistantSlotService {
         if (!rawPreferencesMatrix) {
             throw new Error(`Unknown Event type ${slotOptions.type}`);
         }
-        const preferencesMatrix = AssistantSlotService.buildPreferencesMatrix(
+        const preferencesMatrix = AssistantUtils.buildPreferencesMatrix(
             rawPreferencesMatrix,
             slotOptions.timezone,
         );
@@ -45,10 +47,10 @@ export class AssistantSlotService {
 
         while (slotEndTime <= slotOptions.beforeDate) {
             // Test if slot is available (no Event conflicts)
-            if (AssistantSlotService.slotAvailableForAll(
-                events,
+            if (AssistantUtils.slotAvailableForAll(
                 new Date(slotStartTime.getTime() - AssistantSlotService.TRAVEL_TIME),
                 new Date(slotEndTime.getTime() + AssistantSlotService.TRAVEL_TIME),
+                events,
             )) {
                 // Compute the score of the available slot
                 const score = AssistantSlotService.computeSlotScore(
@@ -76,20 +78,6 @@ export class AssistantSlotService {
         return AssistantSlotService
             .normalizeSlotsScores(slots, scoreMin, scoreMax)
             .sort((s1, s2) => s2.score - s1.score);
-    }
-
-    //
-    // Slot collisions detector
-    //
-    private static readonly slotAvailableForAll = (
-        events: Event[],
-        slotStartTime: Date,
-        slotEndTime: Date,
-    ): boolean => {
-        return events.every(event => {
-            return slotStartTime > event.endTime
-                || slotEndTime < event.startTime;
-        });
     }
 
     //
@@ -122,66 +110,6 @@ export class AssistantSlotService {
             ...slot,
             score: Normalization.minMax(slot.score, scoreMin, scoreMax),
         }));
-    }
-
-    //
-    // Preferences Matrix processing
-    //
-    private static readonly buildPreferencesMatrix = (
-        preferences: number[][],
-        timezone: number,
-    ): number[][] => {
-        preferences = AssistantSlotService.applyTimezone(preferences, timezone);
-
-        const data = Normalization.softmax(Array<number>(0).concat(...preferences));
-        const ret: number[][] = [data.splice(0, 24)];
-
-        while (data.length) {
-            ret.push(data.splice(0, 24));
-        }
-
-        return ret;
-    }
-
-    private static readonly applyTimezone = (
-        preferences: number[][],
-        timezone: number,
-    ): number[][] => {
-        const timezoneOffset = Math.round(timezone / 60);
-        if (timezoneOffset === 0) {
-            return preferences;
-        }
-
-        // Create new preferences matrix
-        const localizedPreferences = new Array(7)
-            .fill([]).map(() => new Array(24).fill(0));
-
-        // Fill new preferences matrix
-        preferences.forEach((prefsDay: number[], dayIdx: number) => {
-            prefsDay.forEach((prefsHour: number, hourIdx: number) => {
-                let localHourIdx = hourIdx - timezoneOffset; // Back to UTC
-                let localDayIdx = dayIdx;
-
-                if (localHourIdx > 23) {
-                    localHourIdx %= 24;
-                    localDayIdx += 1;
-                }
-                else if (localHourIdx < 0) {
-                    localHourIdx += 24;
-                    localDayIdx -= 1;
-                }
-                if (localDayIdx < 0) {
-                    localDayIdx += 7;
-                }
-                else if (localDayIdx > 6) {
-                    localDayIdx -= 7;
-                }
-
-                localizedPreferences[localDayIdx][localHourIdx] = prefsHour;
-            });
-        });
-
-        return localizedPreferences;
     }
 }
 

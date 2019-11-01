@@ -4,7 +4,7 @@ import { Request, Response } from "express";
 import { CalendarRepository } from "../models/CalendarRepository";
 import { EventRepository } from "../models/EventRepository";
 
-import { AssistantSlotService } from "../services/AssistantSlotService";
+import { AssistantSlotService } from "../services/assistant/AssistantSlotService";
 import { DateService } from "../services/DateService";
 
 import { TimeSlotView } from "../views/TimeSlotView";

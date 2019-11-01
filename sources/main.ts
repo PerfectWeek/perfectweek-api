@@ -16,7 +16,7 @@ import { EventRepository } from "./models/EventRepository";
 import { PendingUserRepository } from "./models/PendingUserRepository";
 import { UserRepository } from "./models/UserRepository";
 
-import { AssistantSlotService } from "./services/AssistantSlotService";
+import { AssistantSlotService } from "./services/assistant/AssistantSlotService";
 import { DateService } from "./services/DateService";
 import { ImageStorageService } from "./services/ImageStorageService";
 import { JwtService } from "./services/JwtService";
