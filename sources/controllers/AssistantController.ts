@@ -172,7 +172,7 @@ export class AssistantController {
                 beforeDate: eventsMaxDate,
                 onlyStatuses: [
                     EventAttendeeStatus.Going,
-                    EventAttendeeStatus.NotGoing,
+                    EventAttendeeStatus.Maybe,
                 ],
             },
         );
