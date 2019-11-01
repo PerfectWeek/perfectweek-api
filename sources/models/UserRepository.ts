@@ -82,19 +82,29 @@ export class UserRepository {
 
     public readonly updateUserFriendship = async  (requestingUserId: number,
                                                    targetUserId: number,
-                                                   confirmed: boolean): Promise<any> => {
+                                                   confirmed: boolean): Promise<UserFriendship> => {
         return this.conn
             .getRepository(UserFriendship)
             .save({requestingId: requestingUserId, requestedId: targetUserId, confirmed: confirmed});
     }
 
-    public readonly deleteUserFriendship = async  (_requestingUser: number, _targetUser: number): Promise<any> => {
-        return this.conn
-            .getRepository(UserFriendship);
+    public readonly deleteUserFriendship = async  (requestingUserId: number, targetUserId: number): Promise<void> => {
+        await this.conn
+            .getRepository(UserFriendship)
+            .delete({
+                requestingId: requestingUserId,
+                requestedId: targetUserId,
+            });
     }
 
-    public readonly getAllFriendsForUserId = async  (_requestingUser: number, _status: boolean): Promise<any> => {
-        return ;
+    public readonly getAllFriendsForUserId = async  (requestingUserId: number, status: any): Promise<any> => {
+        return this.conn.getRepository(UserFriendship)
+            .find(
+                {
+                    requestingId: requestingUserId,
+                    confirmed: status,
+                },
+            );
     }
 
     public readonly deleteUser = async (userId: number): Promise<void> => {

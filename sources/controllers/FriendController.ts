@@ -55,13 +55,70 @@ export class FriendController {
         });
     }
 
-    public readonly inviteAccept = async (_req: Request, res: Response) => {
+    public readonly inviteAccept = async (req: Request, res: Response) => {
+        const requestingUser  = getRequestingUser(req);
+
+        const targetUserId = parseInt(req.params.userId, 10);
+        if (isNaN(targetUserId)) {
+            throw Boom.badRequest(`Invalid User id "${req.params.userId}"`);
+        }
+
+        // Check if user exists
+        const targetUser = await this.userRepository.getUserById(targetUserId);
+        if (!targetUser) {
+            throw Boom.notFound(`User id "${req.params.userId}" does not exist`);
+        }
+
+        if (targetUserId === requestingUser.id) {
+            throw Boom.forbidden(`You cannot accept invite from yourself`);
+        }
+
+        // Check existing friendship
+        const existingFriendship = await this.userRepository.getUserFriendship(targetUser.id, requestingUser.id);
+        if (!existingFriendship) {
+            throw Boom.forbidden("Friendship already exist");
+        }
+
+        if (existingFriendship.confirmed) {
+            throw Boom.forbidden("This user is already in your friend list");
+        }
+
+
+        await this.userRepository.updateUserFriendship(requestingUser.id, targetUser.id, true);
         res.status(200).json({
             message: "Invitation Accepted",
         });
     }
 
-    public readonly inviteDecline = async (_req: Request, res: Response) => {
+    public readonly inviteDecline = async (req: Request, res: Response) => {
+        const requestingUser  = getRequestingUser(req);
+
+        const targetUserId = parseInt(req.params.userId, 10);
+        if (isNaN(targetUserId)) {
+            throw Boom.badRequest(`Invalid User id "${req.params.userId}"`);
+        }
+
+        // Check if user exists
+        const targetUser = await this.userRepository.getUserById(targetUserId);
+        if (!targetUser) {
+            throw Boom.notFound(`User id "${req.params.userId}" does not exist`);
+        }
+
+        if (targetUserId === requestingUser.id) {
+            throw Boom.forbidden(`You cannot decline invite from yourself`);
+        }
+
+        // Check existing friendship
+        const existingFriendship = await this.userRepository.getUserFriendship(targetUser.id, requestingUser.id);
+        if (!existingFriendship) {
+            throw Boom.forbidden("Friendship already exist");
+        }
+
+        if (existingFriendship.confirmed) {
+            throw Boom.forbidden("Can't decline an already existing friendship");
+        }
+
+        await this.userRepository.deleteUserFriendship(targetUser.id, requestingUser.id);
         res.status(200).json({
             message: "Invitation declined",
         });
@@ -82,16 +139,34 @@ export class FriendController {
     }
 
     public readonly deleteFriend = async (req: Request, res: Response) => {
-        const user = getRequestingUser(req);
+        const requestingUser = getRequestingUser(req);
 
-        const friendId = parseInt(req.params.userId, 10);
-        if (isNaN(friendId)) {
+        const targetUserId = parseInt(req.params.userId, 10);
+        if (isNaN(targetUserId)) {
             throw Boom.notFound(`User id "${req.params.userId}" not found A`);
         }
 
-        //Delete dans la db
+        const targetUser = await this.userRepository.getUserById(targetUserId);
+        if (!targetUser) {
+            throw Boom.notFound(`User id "${req.params.userId}" does not exist`);
+        }
 
-        await this.userRepository.deleteUserFriendship(user.id, friendId);
+        if (targetUserId === requestingUser.id) {
+            throw Boom.forbidden(`You cannot delete yourself`);
+        }
+
+        // Check existing friendship
+        const existingFriendship1 = await this.userRepository.getUserFriendship(requestingUser.id, targetUser.id);
+        const existingFriendship2 = await this.userRepository.getUserFriendship(targetUser.id, requestingUser.id);
+        if (!existingFriendship1 && !existingFriendship2) {
+            throw Boom.forbidden("Users aren't friends");
+        }
+        if (existingFriendship1 && existingFriendship1.confirmed) {
+            await this.userRepository.deleteUserFriendship(requestingUser.id, targetUserId);
+        }
+        else if (existingFriendship2 && existingFriendship2.confirmed){
+            await this.userRepository.getUserFriendship(targetUserId, requestingUser.id);
+        }
         res.status(200).json({
             message: "Friend removed",
         });
