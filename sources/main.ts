@@ -201,7 +201,7 @@ function createServer(
     );
     const friendController = new FriendController(
         userRepository,
-        userView
+        userView,
     );
     const userController = new UserController(
         userRepository,

@@ -58,24 +58,26 @@ export class UserRepository {
             }));
     }
 
-    public readonly createUserFriendship = async  (requestingUserId: number, targetUserId: number): Promise<UserFriendship> => {
+    public readonly createUserFriendship = async  (
+        userFriendship: UserFriendship,
+    ): Promise<UserFriendship> => {
         return this.conn
             .getRepository(UserFriendship)
-            .save(new UserFriendship({
-                requestingId: requestingUserId,
-                requestedId: targetUserId,
-                confirmed: false,
-            }));
+            .save(userFriendship);
     }
 
-    public readonly getUserFriendship = async  (requestingUserId: number, targetUserId: number): Promise<UserFriendship | undefined> => {
+    public readonly getUserFriendship = async  (
+        requestingUserId: number,
+        targetUserId: number,
+    ): Promise<UserFriendship | undefined> => {
         return this.conn
             .getRepository(UserFriendship)
-            .findOne({ where: {
-                        requestingId: requestingUserId,
-                        requestedId: targetUserId,
-                    confirmed: true,
-                }});
+            .findOne({
+                where: {
+                    requestingId: requestingUserId,
+                    requestedId: targetUserId,
+                },
+            });
     }
 
     public readonly updateUserFriendship = async  (requestingUserId: number,

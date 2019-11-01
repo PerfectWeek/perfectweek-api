@@ -1,9 +1,11 @@
 import Boom from "@hapi/boom";
-
 import { Request, Response } from "express";
+
+import { UserFriendship } from "../models/entities/UserFriendship";
+import { UserRepository } from "../models/UserRepository";
+import { UserView } from "../views/UserView";
+
 import { getRequestingUser } from "../middleware/utils/getRequestingUser";
-import {UserRepository} from "../models/UserRepository";
-import {UserView} from "../views/UserView";
 
 export class FriendController {
 
@@ -16,33 +18,39 @@ export class FriendController {
     }
 
     public readonly inviteUser = async (req: Request, res: Response) => {
-        const user = getRequestingUser(req);
+        const requestingUser = getRequestingUser(req);
 
-        const friendId = parseInt(req.params.userId, 10);
-        if (isNaN(friendId)) {
-            throw Boom.notFound(`User id "${req.params.userId}" not found A`);
+        // Validate request's parameters
+        const targetUserId = parseInt(req.params.userId, 10);
+        if (isNaN(targetUserId)) {
+            throw Boom.badRequest(`Invalid User id "${req.params.userId}"`);
         }
 
-
-        const friend = await this.userRepository.getUserById(friendId);
-        if (!friend) {
-            throw Boom.notFound(`User id "${req.params.userId}" not found B`);
+        if (targetUserId === requestingUser.id) {
+            throw Boom.forbidden(`You cannot invite yourself`);
         }
 
-        const existingFriendship = await this.userRepository.getUserFriendship(user.id, friend.id);
-        if (existingFriendship) {
-            throw Boom.forbidden("You cannot invite this user again");
+        // Check if user exists
+        const targetUser = await this.userRepository.getUserById(targetUserId);
+        if (!targetUser) {
+            throw Boom.notFound(`User id "${req.params.userId}" does not exist`);
         }
 
-        const newFriendship = this.userRepository.createUserFriendship(user.id, friendId);
-        const friendsQuery: () => { id: number; confirmed: boolean } = (() => {
-            return {
-                id: friendId,
-                confirmed: newFriendship.confirmed,
-            };
-        });
+        // Check existing friendship in both ways
+        const existingFriendship1 = await this.userRepository.getUserFriendship(requestingUser.id, targetUser.id);
+        const existingFriendship2 = await this.userRepository.getUserFriendship(targetUser.id, requestingUser.id);
+        if (existingFriendship1 || existingFriendship2) {
+            throw Boom.forbidden("An invitation have already been sent");
+        }
+
+        // Create new invitation
+        await this.userRepository.createUserFriendship(new UserFriendship({
+            requestingId: requestingUser.id,
+            requestedId: targetUser.id,
+            confirmed: false,
+        }));
+
         res.status(200).json({
-            test: friendsQuery,
             message: "Invitation Sent",
         });
     }
