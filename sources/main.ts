@@ -22,6 +22,7 @@ import { AssistantSlotService } from "./services/assistant/AssistantSlotService"
 import { DateService } from "./services/DateService";
 import { ImageStorageService } from "./services/ImageStorageService";
 import { JwtService } from "./services/JwtService";
+import { createMailService } from "./services/MailService";
 import { PasswordService } from "./services/PasswordService";
 
 import { EmailValidator } from "./validators/EmailValidator";
@@ -94,6 +95,9 @@ function createServer(
     const assistantSlotService = new AssistantSlotService();
     const dateService = new DateService();
     const jwtService = new JwtService(config.JWT_SECRET_KEY);
+    const mailService = config.EMAIL_ENABLED
+        ? createMailService(config.MAILGUN_API_KEY!, config.MAILGUN_DOMAIN!, config.EMAIL_FROM)
+        : undefined;
     const passwordService = new PasswordService();
     const calendarIconImageStorageService = new ImageStorageService(
         assetsInfo.calendars.icon.baseDir,
@@ -129,10 +133,12 @@ function createServer(
         pendingUserRepository,
         userRepository,
         jwtService,
+        mailService,
         passwordService,
         emailValidator,
         nameValidator,
         passwordValidator,
+        `${config.FRONT_END_HOST}/auth/validate-email`,
     );
     const calendarController = new CalendarController(
         calendarRepository,

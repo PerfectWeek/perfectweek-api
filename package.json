@@ -9,11 +9,9 @@
     "scripts": {
         "start": "ts-node sources/main.ts",
         "dev": "nodemon -L",
-
         "lint": "tslint -p tsconfig.json -c tslint.json './sources/**/*.ts' './tests/**/*.ts'",
         "lint:fix": "tslint -p tsconfig.json -c tslint.json './sources/**/*.ts' './tests/**/*.ts' --fix",
         "test:unit-tests": "jest --coverage",
-
         "jest": "jest",
         "tslint": "tslint",
         "typeorm": "ts-node ./node_modules/typeorm/cli.js"
@@ -28,6 +26,7 @@
         "@types/glob": "^7.1.1",
         "@types/hapi__boom": "^7.4.0",
         "@types/jsonwebtoken": "^8.3.2",
+        "@types/mailgun-js": "^0.22.3",
         "@types/mime": "^2.0.1",
         "@types/morgan": "^1.7.35",
         "@types/multer": "^1.3.7",
@@ -37,6 +36,7 @@
         "express": "^4.17.1",
         "glob": "^7.1.4",
         "jsonwebtoken": "^8.5.1",
+        "mailgun-js": "^0.22.0",
         "mime": "^2.4.4",
         "morgan": "^1.9.1",
         "multer": "^1.4.2",
@@ -45,7 +45,8 @@
         "ts-node": "^8.3.0",
         "typeorm": "^0.2.18",
         "typescript": "^3.5.2",
-        "uuid": "^3.3.2"
+        "uuid": "^3.3.2",
+        "yn": "^3.1.1"
     },
     "devDependencies": {
         "@types/jest": "^24.0.15",
