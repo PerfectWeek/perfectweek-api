@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 
 import { UserFriendship } from "../models/entities/UserFriendship";
 import { UserRepository } from "../models/UserRepository";
+import {parseBool} from "../utils/parseBool";
 import { UserView } from "../views/UserView";
 
 import { getRequestingUser } from "../middleware/utils/getRequestingUser";
@@ -125,7 +126,7 @@ export class FriendController {
         const requestingUser = getRequestingUser(req);
 
         // Recover query parameter
-        const confirmed: true | false | undefined = req.query.confirmed;
+        const confirmed = parseBool(req.query.confirmed);
 
         // Recover sent and received friend request
         const sentRequests = await this.userRepository.getAllFriendRelationsSentForUserId(requestingUser.id, confirmed);
