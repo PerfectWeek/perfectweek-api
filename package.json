@@ -45,7 +45,8 @@
         "ts-node": "^8.3.0",
         "typeorm": "^0.2.18",
         "typescript": "^3.5.2",
-        "uuid": "^3.3.2"
+        "uuid": "^3.3.2",
+        "yn": "^3.1.1"
     },
     "devDependencies": {
         "@types/jest": "^24.0.15",
