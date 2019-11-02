@@ -230,7 +230,9 @@ function createServer(
         imageUploadMiddleware,
     );
 
-    return new Server(router);
+    return new Server(router, {
+        devMode: config.NODE_ENV === "development",
+    });
 }
 
 function buildAssetsInfo(assetsRootDir: string) {
