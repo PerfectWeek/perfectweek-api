@@ -3,6 +3,8 @@ import { parseBool } from "./utils/parseBool";
 
 // tslint:disable-next-line: interface-name
 export interface Config {
+    readonly NODE_ENV: string;
+
     readonly API_PORT: number;
 
     readonly JWT_SECRET_KEY: string;
@@ -18,6 +20,14 @@ export interface Config {
 }
 
 export function loadConfig(): Config {
+    // Node env
+    const NODE_ENV = envOrThrow("NODE_ENV", "development");
+    switch (NODE_ENV) {
+        case "development": break;
+        case "production": break;
+        default: throw new Error(`Invalid NODE_ENV "${NODE_ENV}"`);
+    }
+
     // Mailer
     const EMAIL_ENABLED = parseBool(envOrThrow("EMAIL_ENABLED", "false"));
     if (EMAIL_ENABLED === undefined) {
@@ -33,6 +43,8 @@ export function loadConfig(): Config {
     }
 
     return {
+        NODE_ENV: NODE_ENV,
+
         API_PORT: Number.parseInt(envOrThrow("PORT", "3000"), 10),
 
         JWT_SECRET_KEY: envOrThrow("JWT_SECRET_KEY"),
