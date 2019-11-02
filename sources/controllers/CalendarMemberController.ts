@@ -2,13 +2,14 @@ import Boom from "@hapi/boom";
 import { Request, Response } from "express";
 import { isArray } from "util";
 
+import { CalendarMember } from "../models/entities/CalendarMember";
+
 import { CalendarRepository } from "../models/CalendarRepository";
 import { EventRepository } from "../models/EventRepository";
 import { UserRepository } from "../models/UserRepository";
 
 import { CalendarPolicy } from "../policies/CalendarPolicy";
 
-import { CalendarInviteView } from "../views/CalendarInviteView";
 import { CalendarView } from "../views/CalendarView";
 
 import { getRequestingUser } from "../middleware/utils/getRequestingUser";
@@ -26,7 +27,6 @@ export class CalendarMemberController {
 
     private readonly calendarPolicy: CalendarPolicy;
 
-    private readonly calendarInviteView: CalendarInviteView;
     private readonly calendarView: CalendarView;
 
     constructor(
@@ -37,14 +37,12 @@ export class CalendarMemberController {
         // Policies
         calendarPolicy: CalendarPolicy,
         // Views
-        calendarInviteView: CalendarInviteView,
         calendarView: CalendarView,
     ) {
         this.calendarRepository = calendarRepository;
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
         this.calendarPolicy = calendarPolicy;
-        this.calendarInviteView = calendarInviteView;
         this.calendarView = calendarView;
     }
 
@@ -119,7 +117,7 @@ export class CalendarMemberController {
             throw Boom.conflict(`User ${alreadyInMember.user.id} is already a member of the Calendar`);
         }
 
-        // Add users in calendar
+        // Add users in Calendar
         const newMembersList = await this.calendarRepository.addMembersToCalendar(
             calendar,
             membersToAdd,
@@ -145,18 +143,6 @@ export class CalendarMemberController {
         res.status(200).json({
             message: "OK",
             members: newMembersList.map(this.calendarView.formatCalendarMember),
-        });
-    }
-
-    public readonly getPendingInvites = async (req: Request, res: Response) => {
-        const requestingUser = getRequestingUser(req);
-
-        // Retrieve pendings invites
-        const pendingInvites = await this.calendarRepository.getPendingInvitesForUser(requestingUser);
-
-        res.status(200).json({
-            message: "OK",
-            invites: pendingInvites.map(this.calendarInviteView.formatCalendarInvite),
         });
     }
 
@@ -215,13 +201,106 @@ export class CalendarMemberController {
         });
     }
 
-    public readonly editMemberRole = async (_req: Request, res: Response) => {
+    public readonly editMemberRole = async (req: Request, res: Response) => {
+        const requestingUser = getRequestingUser(req);
+
+        // Validate request's parameters
+        const calendarId = parseInt(req.params.calendarId, 10);
+        if (isNaN(calendarId)) {
+            throw Boom.badRequest(`Invalid calendar_id "${req.params.calendarId}"`);
+        }
+        const userId = parseInt(req.params.userId, 10);
+        if (isNaN(userId)) {
+            throw Boom.badRequest(`Invalid user_id "${req.params.userId}"`);
+        }
+        const role = calendarMemberRoleFromString(req.body.role);
+        if (!role) {
+            throw Boom.badRequest(`Invalid role "${req.body.role}"`);
+        }
+
+        // Check if the requesting User is a member of the Calendar
+        const requestingUserMembership = await this.calendarRepository.getCalendarMemberShip(
+            calendarId,
+            requestingUser.id,
+        );
+        if (!requestingUserMembership) {
+            throw Boom.forbidden("You do not have access to this Calendar");
+        }
+
+        // Check if Requesting User has enough rights to edit roles
+        if (!this.calendarPolicy.userCanEditMembers(requestingUserMembership)) {
+            throw Boom.forbidden("You cannot edit members' roles");
+        }
+
+        let userToEditMembership: CalendarMember | undefined;
+        if (requestingUser.id === userId) {
+            // Requesting User edits himself
+            userToEditMembership = requestingUserMembership;
+        }
+        else {
+            // Requesting User edits someone else
+
+            // Check if User is part of the Calendar
+            userToEditMembership = await this.calendarRepository.getCalendarMemberShip(calendarId, userId);
+            if (!userToEditMembership) {
+                throw Boom.notFound("The User to edit is not part of the Calendar");
+            }
+        }
+
+        // Edit role
+        userToEditMembership.role = role;
+        await this.calendarRepository.updateMembership(userToEditMembership);
+
         res.status(200).json({
             message: "Role edited",
         });
     }
 
-    public readonly deleteMember = async (_req: Request, res: Response) => {
+    public readonly deleteMember = async (req: Request, res: Response) => {
+        const requestingUser = getRequestingUser(req);
+
+        // Validate request's parameters
+        const calendarId = parseInt(req.params.calendarId, 10);
+        if (isNaN(calendarId)) {
+            throw Boom.badRequest(`Invalid calendar_id "${req.params.calendarId}"`);
+        }
+        const userId = parseInt(req.params.userId, 10);
+        if (isNaN(userId)) {
+            throw Boom.badRequest(`Invalid user_id "${req.params.userId}"`);
+        }
+
+        // Check if the requesting User is a member of the Calendar
+        const requestingUserMembership = await this.calendarRepository.getCalendarMemberShip(
+            calendarId,
+            requestingUser.id,
+        );
+        if (!requestingUserMembership) {
+            throw Boom.forbidden("You do not have access to this Calendar");
+        }
+
+        let userToEditMembership: CalendarMember | undefined;
+        if (requestingUser.id === userId) {
+            // Requesting User removes himself
+            userToEditMembership = requestingUserMembership;
+        }
+        else {
+            // Requesting User removes someone else
+
+            // Check if Requesting User has enough rights to remove members
+            if (!this.calendarPolicy.userCanEditMembers(requestingUserMembership)) {
+                throw Boom.forbidden("You cannot remove members");
+            }
+
+            // Check if User is part of the Calendar
+            userToEditMembership = await this.calendarRepository.getCalendarMemberShip(calendarId, userId);
+            if (!userToEditMembership) {
+                throw Boom.notFound("The User to remove is not part of the Calendar");
+            }
+        }
+
+        // Remove member
+        await this.calendarRepository.deleteMembership(userToEditMembership);
+
         res.status(200).json({
             message: "Member removed",
         });
@@ -229,6 +308,6 @@ export class CalendarMemberController {
 }
 
 type MemberQueryParam = {
-    id: number,
-    role: CalendarMemberRole,
+    id: number;
+    role: CalendarMemberRole;
 };

@@ -6,7 +6,6 @@ PerfectWeek web API
 
 ## Prerequisites
 
-- GIT LFS: see [https://git-lfs.github.com/](https://git-lfs.github.com/)
 - docker, docker-compose: see [https://docs.docker.com/install/overview/](https://docs.docker.com/install/overview/)
 
 ## Quickstart

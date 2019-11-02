@@ -8,6 +8,7 @@ import { PendingUserRepository } from "../models/PendingUserRepository";
 import { UserRepository } from "../models/UserRepository";
 
 import { JwtService } from "../services/JwtService";
+import { MailService } from "../services/MailService";
 import { PasswordService } from "../services/PasswordService";
 
 import { EmailValidator } from "../validators/EmailValidator";
@@ -22,11 +23,14 @@ export class AuthLocalController {
     private readonly userRepository: UserRepository;
 
     private readonly jwtService: JwtService;
+    private readonly mailService?: MailService;
     private readonly passwordService: PasswordService;
 
     private readonly emailValidator: EmailValidator;
     private readonly nameValidator: NameValidator;
     private readonly passwordValidator: PasswordValidator;
+
+    private readonly confirmationEmailBaseLink: string;
 
     constructor(
         // Repositories
@@ -34,21 +38,27 @@ export class AuthLocalController {
         userRepository: UserRepository,
         // Services
         jwtService: JwtService,
+        mailService: MailService | undefined,
         passwordService: PasswordService,
         // Validators
         emailValidator: EmailValidator,
         nameValidator: NameValidator,
         passwordValidator: PasswordValidator,
+        // Config
+        confirmationEmailBaseLink: string,
     ) {
         this.pendingUserRepository = pendingUserRepository;
         this.userRepository = userRepository;
 
         this.jwtService = jwtService;
+        this.mailService = mailService;
         this.passwordService = passwordService;
 
         this.emailValidator = emailValidator;
         this.nameValidator = nameValidator;
         this.passwordValidator = passwordValidator;
+
+        this.confirmationEmailBaseLink = confirmationEmailBaseLink;
     }
 
     public readonly registerUser = async (req: Request, res: Response) => {
@@ -94,14 +104,33 @@ export class AuthLocalController {
             uuid: uuid,
         }));
 
-        res.status(201).json({
+        const responsePayload: any = {
             message: "User created",
             user: {
                 email: pendingUser.email,
                 name: pendingUser.name,
             },
-            uuid: pendingUser.uuid, // TODO: only in dev mode
-        });
+        };
+
+        // Check if a mailer has been provided
+        if (this.mailService) {
+            // Send a confirmation email
+            this.mailService.sendEmail({
+                to: pendingUser.email,
+                subject: "Account verification",
+                text: `${this.confirmationEmailBaseLink}/${pendingUser.uuid}`,
+            }).then(() => {
+                console.info(`[LOG][MAILER] Confirmation email sent for user ${pendingUser.id}`);
+            }).catch((e: Error) => {
+                console.error(e.stack);
+            });
+        }
+        else {
+            // Send the confirmation uuid in the response
+            responsePayload.uuid = pendingUser.uuid;
+        }
+
+        res.status(201).json(responsePayload);
     }
 
     public readonly validateEmail = async (req: Request, res: Response) => {

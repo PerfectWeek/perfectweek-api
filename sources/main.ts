@@ -6,9 +6,10 @@ import * as Router from "./router";
 
 import { Server } from "./Server";
 
-import { CalendarInviteView } from "./views/CalendarInviteView";
 import { CalendarView } from "./views/CalendarView";
+import { EventSuggestionView } from "./views/EventSuggestionView";
 import { EventView } from "./views/EventView";
+import { TimeSlotView } from "./views/TimeSlotView";
 import { UserView } from "./views/UserView";
 
 import { CalendarRepository } from "./models/CalendarRepository";
@@ -16,9 +17,12 @@ import { EventRepository } from "./models/EventRepository";
 import { PendingUserRepository } from "./models/PendingUserRepository";
 import { UserRepository } from "./models/UserRepository";
 
+import { AssistantEventSuggestionService } from "./services/assistant/AssistantEventSuggestionService";
+import { AssistantSlotService } from "./services/assistant/AssistantSlotService";
 import { DateService } from "./services/DateService";
 import { ImageStorageService } from "./services/ImageStorageService";
 import { JwtService } from "./services/JwtService";
+import { createMailService } from "./services/MailService";
 import { PasswordService } from "./services/PasswordService";
 
 import { EmailValidator } from "./validators/EmailValidator";
@@ -42,70 +46,35 @@ import { FriendController } from "./controllers/FriendController";
 import { UserController } from "./controllers/UserController";
 import { UserImageController } from "./controllers/UserImageController";
 
+import { Config, loadConfig } from "./config";
+
 import * as AuthenticatedOnlyMiddleware from "./middleware/authenticatedOnlyMiddleware";
 import * as ImageUploadMiddleware from "./middleware/imageUploadMiddleware";
 
 const CURRENT_DIRECTORY: string = __dirname;
 
 function main(): void {
+    const config = loadConfig();
     const dbConfig = DbConfig.load("../ormconfig.js");
-
-    const apiPort = parseInt(process.env.PORT || "", 10);
-    if (isNaN(apiPort)) {
-        throw new Error('Missing environment variable "PORT"');
-    }
-
-    const jwtSecretKey = process.env.JWT_SECRET_KEY;
-    if (!jwtSecretKey) {
-        throw new Error('Missing environment variable "JWT_SECRET_KEY"');
-    }
-
-    const ASSETS_ROOT_DIR = process.env.ASSETS_ROOT_DIR;
-    if (!ASSETS_ROOT_DIR) {
-        throw new Error('Missing environment variable "ASSETS_ROOT_DIR"');
-    }
-
-    const ASSETS_INFO: AssetsInfo = {
-        favicon: {
-            image: `${CURRENT_DIRECTORY}/assets/favicon.ico`,
-        },
-        MULTER_UPLOAD_DIR: `${ASSETS_ROOT_DIR}/uploads/images`,
-        calendars: {
-            icon: {
-                baseDir: `${ASSETS_ROOT_DIR}/images/calendars/icon`,
-                default: `${CURRENT_DIRECTORY}/assets/images/calendar_icon_default.jpg`,
-            },
-        },
-        events: {
-            image: {
-                baseDir: `${ASSETS_ROOT_DIR}/images/events/image`,
-                default: `${CURRENT_DIRECTORY}/assets/images/event_image_default.jpg`,
-            },
-        },
-        users: {
-            profile: {
-                baseDir: `${ASSETS_ROOT_DIR}/images/users/profile`,
-                default: `${CURRENT_DIRECTORY}/assets/images/user_profile_default.jpg`,
-            },
-        },
-    };
 
     createConnection(dbConfig).then((conn: Connection) => {
         console.info("[LOG] Connected to database");
 
-        const server = createServer(conn, jwtSecretKey, ASSETS_INFO);
+        const server = createServer(conn, config);
 
-        server.start(apiPort, () => {
-            console.info(`[LOG] Server started on port ${apiPort}`);
+        server.start(config.API_PORT, () => {
+            console.info(`[LOG] Server started on port ${config.API_PORT}`);
         });
     });
 }
 
 function createServer(
     conn: Connection,
-    jwtSecretKey: string,
-    assetsInfo: AssetsInfo,
+    config: Config,
 ): Server {
+    // Assets info
+    const assetsInfo = buildAssetsInfo(config.ASSETS_ROOT_DIR);
+
     // Create Repositories
     const calendarRepository = new CalendarRepository(conn);
     const eventRepository = new EventRepository(conn);
@@ -122,8 +91,13 @@ function createServer(
     const passwordValidator = new PasswordValidator();
 
     // Create Services
+    const assistantEventSuggestionService = new AssistantEventSuggestionService();
+    const assistantSlotService = new AssistantSlotService();
     const dateService = new DateService();
-    const jwtService = new JwtService(jwtSecretKey);
+    const jwtService = new JwtService(config.JWT_SECRET_KEY);
+    const mailService = config.EMAIL_ENABLED
+        ? createMailService(config.MAILGUN_API_KEY!, config.MAILGUN_DOMAIN!, config.EMAIL_FROM)
+        : undefined;
     const passwordService = new PasswordService();
     const calendarIconImageStorageService = new ImageStorageService(
         assetsInfo.calendars.icon.baseDir,
@@ -136,24 +110,35 @@ function createServer(
     );
 
     // Create Views
-    const calendarInviteView = new CalendarInviteView();
     const calendarView = new CalendarView();
     const eventView = new EventView();
+    const eventSuggestionView = new EventSuggestionView(eventView);
+    const timeSlotView = new TimeSlotView();
     const userView = new UserView();
 
     // Create Controllers
     const apiEndpointController = new ApiEndpointController(
         assetsInfo.favicon.image,
     );
-    const assistantController = new AssistantController();
+    const assistantController = new AssistantController(
+        calendarRepository,
+        eventRepository,
+        assistantEventSuggestionService,
+        assistantSlotService,
+        dateService,
+        eventSuggestionView,
+        timeSlotView,
+    );
     const authLocalController = new AuthLocalController(
         pendingUserRepository,
         userRepository,
         jwtService,
+        mailService,
         passwordService,
         emailValidator,
         nameValidator,
         passwordValidator,
+        `${config.FRONT_END_HOST}/auth/validate-email`,
     );
     const calendarController = new CalendarController(
         calendarRepository,
@@ -177,7 +162,6 @@ function createServer(
         eventRepository,
         userRepository,
         calendarPolicy,
-        calendarInviteView,
         calendarView,
     );
     const eventController = new EventController(
@@ -249,30 +233,33 @@ function createServer(
     return new Server(router);
 }
 
-type AssetsInfo = {
-    favicon: {
-        image: string;
+function buildAssetsInfo(assetsRootDir: string) {
+    return {
+        favicon: {
+            image: `${CURRENT_DIRECTORY}/assets/favicon.ico`,
+        },
+        MULTER_UPLOAD_DIR: `${assetsRootDir}/uploads/images`,
+        calendars: {
+            icon: {
+                baseDir: `${assetsRootDir}/images/calendars/icon`,
+                default: `${CURRENT_DIRECTORY}/assets/images/calendar_icon_default.jpg`,
+            },
+        },
+        events: {
+            image: {
+                baseDir: `${assetsRootDir}/images/events/image`,
+                default: `${CURRENT_DIRECTORY}/assets/images/event_image_default.jpg`,
+            },
+        },
+        users: {
+            profile: {
+                baseDir: `${assetsRootDir}/images/users/profile`,
+                default: `${CURRENT_DIRECTORY}/assets/images/user_profile_default.jpg`,
+            },
+        },
+
     };
-    MULTER_UPLOAD_DIR: string;
-    calendars: {
-        icon: {
-            baseDir: string;
-            default: string;
-        };
-    };
-    events: {
-        image: {
-            baseDir: string;
-            default: string;
-        };
-    };
-    users: {
-        profile: {
-            baseDir: string;
-            default: string;
-        };
-    };
-};
+}
 
 // Run only if executed directly (e.g: `ts-node sources/main.ts`)
 if (require.main === module) {

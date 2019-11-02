@@ -36,7 +36,7 @@ export class UserController {
         this.userView = userView;
     }
 
-    public readonly getUser = (req: Request, res: Response) => {
+    public readonly getSelfUser = (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
 
         res.status(200).json({
@@ -45,7 +45,7 @@ export class UserController {
         });
     }
 
-    public readonly updateUser = async (req: Request, res: Response) => {
+    public readonly updateSelfUser = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
 
         const newEmail = trim(req.body.email);
@@ -73,7 +73,7 @@ export class UserController {
         });
     }
 
-    public readonly deleteUser = async (req: Request, res: Response) => {
+    public readonly deleteSelfUser = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
 
         await this.userRepository.deleteUser(requestingUser.id);
@@ -83,7 +83,7 @@ export class UserController {
         });
     }
 
-    public readonly updateUserTimezone = async (req: Request, res: Response) => {
+    public readonly updateSelfUserTimezone = async (req: Request, res: Response) => {
         const requestingUser = getRequestingUser(req);
 
         // Validate request's parameters
@@ -98,6 +98,25 @@ export class UserController {
 
         res.status(200).json({
             message: "Timezone updated",
+        });
+    }
+
+    public readonly getUser = async (req: Request, res: Response) => {
+        // Validate request's parameters
+        const targetUserId = parseInt(req.params.userId, 10);
+        if (isNaN(targetUserId)) {
+            throw Boom.badRequest(`Invalid User id "${targetUserId}"`);
+        }
+
+        // Get target User
+        const targetUser = await this.userRepository.getUserById(targetUserId);
+        if (!targetUser) {
+            throw Boom.notFound("User does not exist");
+        }
+
+        res.status(200).json({
+            message: "OK",
+            user: this.userView.formatPublicUser(targetUser),
         });
     }
 }

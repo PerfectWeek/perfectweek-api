@@ -1,11 +1,11 @@
-export type TimeSlotPreferences = {
-    [key: string]: number[][],
-};
+export interface ITimeSlotPreferences {
+    [key: string]: number[][];
+}
 
 //
 // Weekly TimeSlotPreferences (weeks start at sunday)
 //
-export const BASE_TIME_SLOT_PREFERENCES: TimeSlotPreferences = {
+export const BASE_TIME_SLOT_PREFERENCES: ITimeSlotPreferences = {
     hobby: [
         [1, 1, 1, 1, 1, 1, 1, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 3, 1],
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 5, 5, 5, 3, 1],

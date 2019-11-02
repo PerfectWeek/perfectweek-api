@@ -4,6 +4,7 @@ import { isUndefined } from "util";
 
 import { EventAttendeeRole } from "../core/enums/EventAttendeeRole";
 import { EventAttendeeStatus, eventAttendeeStatusFromString } from "../core/enums/EventAttendeeStatus";
+import { eventTypeFromString } from "../core/enums/EventType";
 import { EventVisibility, eventVisibilityFromString } from "../core/enums/EventVisibility";
 
 import { EventView } from "../views/EventView";
@@ -66,7 +67,7 @@ export class EventController {
         const eventName = trim(req.body.name);
         const eventStart = req.body.start_time;
         const eventEnd = req.body.end_time;
-        const eventType = req.body.type;
+        const eventType = eventTypeFromString(req.body.type);
         const eventVisibility = req.body.visibility;
         const eventDescription = req.body.description;
         const eventLocation = req.body.location;
@@ -78,7 +79,7 @@ export class EventController {
             || !eventVisibility
             || !eventColor
         ) {
-            throw Boom.badRequest("Missing fields for Event");
+            throw Boom.badRequest("Missing fields for Event, or invalid type");
         }
 
         // Validate Event dates
@@ -92,7 +93,7 @@ export class EventController {
         if (!visibility) {
             throw Boom.badRequest("Invalid visibility");
         }
-        // Validate optionnal parameter "calendar_id"
+        // Validate optional parameter "calendar_id"
         const calendarId = req.body.calendar_id !== undefined
             ? parseInt(req.body.calendar_id, 10)
             : undefined;
@@ -258,7 +259,7 @@ export class EventController {
         }
 
         // Get corresponding events
-        const eventStatuses = await this.eventRepository.getAllEventsForUserWithCalendars(
+        const eventStatuses = await this.eventRepository.getAllEventsForUser(
             requestingUser.id,
             {
                 afterDate: afterDate,
@@ -268,6 +269,7 @@ export class EventController {
                 // We made sure that no statuses are undefined previously
                 onlyStatuses: <EventAttendeeStatus[] | undefined> onlyStatuses,
             },
+            true,
         );
 
         res.status(200).json({
@@ -289,7 +291,7 @@ export class EventController {
         const eventName = trim(req.body.name);
         const eventStart = req.body.start_time;
         const eventEnd = req.body.end_time;
-        const eventType = req.body.type;
+        const eventType = eventTypeFromString(req.body.type);
         const eventVisibility = req.body.visibility;
         const eventDescription = req.body.description;
         const eventLocation = req.body.location;
@@ -301,7 +303,7 @@ export class EventController {
             || !eventVisibility
             || !eventColor
         ) {
-            throw Boom.badRequest("Missing fields for Event");
+            throw Boom.badRequest("Missing fields for Event, or invalid type");
         }
 
         // Validate Event dates
