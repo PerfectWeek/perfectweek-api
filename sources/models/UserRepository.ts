@@ -58,6 +58,103 @@ export class UserRepository {
             }));
     }
 
+    public readonly createUserFriendship = async  (
+        userFriendship: UserFriendship,
+    ): Promise<UserFriendship> => {
+        return this.conn
+            .getRepository(UserFriendship)
+            .save(userFriendship);
+    }
+
+    public readonly getUserFriendship = async  (
+        requestingUserId: number,
+        targetUserId: number,
+    ): Promise<UserFriendship | undefined> => {
+        return this.conn
+            .getRepository(UserFriendship)
+            .findOne({
+                where: {
+                    requestingId: requestingUserId,
+                    requestedId: targetUserId,
+                },
+            });
+    }
+
+    public readonly updateUserFriendship = async (
+        requestingUserId: number,
+        targetUserId: number,
+        confirmed: boolean,
+    ): Promise<UserFriendship> => {
+        return this.conn
+            .getRepository(UserFriendship)
+            .save({requestingId: requestingUserId, requestedId: targetUserId, confirmed: confirmed});
+    }
+
+    public readonly deleteUserFriendship = async  (requestingUserId: number, targetUserId: number): Promise<void> => {
+        await this.conn
+            .getRepository(UserFriendship)
+            .delete({
+                requestingId: requestingUserId,
+                requestedId: targetUserId,
+            });
+    }
+
+    public readonly getAllFriendRelationsSentForUserId = async (
+        userId: number,
+        confirmed?: boolean,
+    ): Promise<UserFriendshipStatus[]> => {
+        let query = this.conn
+            .getRepository(UserFriendship)
+            .createQueryBuilder("uf")
+            .innerJoinAndMapOne("uf.requestedUser", "users", "u", "uf.requested_id = u.id")
+            .where("uf.requesting_id = :userId", { userId: userId });
+
+        if (confirmed !== undefined) {
+            query = query
+                .andWhere("uf.confirmed = :confirmed", { confirmed: confirmed });
+        }
+
+        const friends = await query.getMany();
+
+        return friends.map(f => {
+            if (!f.requestedUser) {
+                throw new Error("UserFriendship.requestedUser should be defined");
+            }
+            return {
+                user: f.requestedUser,
+                confirmed: f.confirmed,
+            };
+        });
+    }
+
+    public readonly getAllFriendRelationsReceivedForUserId = async (
+        userId: number,
+        confirmed?: boolean,
+    ): Promise<UserFriendshipStatus[]> => {
+        let query = this.conn
+            .getRepository(UserFriendship)
+            .createQueryBuilder("uf")
+            .innerJoinAndMapOne("uf.requestingUser", "users", "u", "uf.requesting_id = u.id")
+            .where("uf.requested_id = :userId", { userId: userId });
+
+        if (confirmed !== undefined) {
+            query = query
+                .andWhere("uf.confirmed = :confirmed", { confirmed: confirmed });
+        }
+
+        const friends = await query.getMany();
+
+        return friends.map(f => {
+            if (!f.requestingUser) {
+                throw new Error("UserFriendship.requestingUser should be defined");
+            }
+            return {
+                user: f.requestingUser,
+                confirmed: f.confirmed,
+            };
+        });
+    }
+
     public readonly deleteUser = async (userId: number): Promise<void> => {
         await this.conn.transaction(async entityManager => {
             // Delete Friendships
@@ -72,3 +169,8 @@ export class UserRepository {
         });
     }
 }
+
+export type UserFriendshipStatus = {
+    user: User,
+    confirmed: boolean,
+};

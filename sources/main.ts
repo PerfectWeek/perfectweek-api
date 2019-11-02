@@ -184,7 +184,10 @@ function createServer(
         eventPolicy,
         eventView,
     );
-    const friendController = new FriendController();
+    const friendController = new FriendController(
+        userRepository,
+        userView,
+    );
     const userController = new UserController(
         userRepository,
         emailValidator,
