@@ -1,5 +1,5 @@
 import { User } from "../models/entities/User";
-import {UserFriendshipStatus} from "../models/UserRepository";
+import { UserFriendshipStatus } from "../models/UserRepository";
 
 export class UserView {
 

@@ -13,7 +13,12 @@ export class FriendController {
     private readonly userRepository: UserRepository;
     private readonly userView: UserView;
 
-    constructor(userRepository: UserRepository, userView: UserView){
+    constructor(
+        // Repository
+        userRepository: UserRepository,
+        // View
+        userView: UserView,
+    ) {
         this.userRepository = userRepository;
         this.userView = userView;
     }
@@ -78,12 +83,14 @@ export class FriendController {
             throw Boom.forbidden("No pending invitation from this User");
         }
 
+        // Check if the friend is already in your friendlist
         if (existingFriendship.confirmed) {
             throw Boom.forbidden("This user is already in your friend list");
         }
 
         // Accept invitation
         await this.userRepository.updateUserFriendship(requestingUser.id, invitingUser.id, true);
+
         res.status(200).json({
             message: "Invitation accepted",
         });
@@ -117,6 +124,7 @@ export class FriendController {
 
         // Delete Invitation
         await this.userRepository.deleteUserFriendship(invitingUser.id, requestingUser.id);
+
         res.status(200).json({
             message: "Invitation declined",
         });
@@ -171,6 +179,7 @@ export class FriendController {
         else if (existingFriendship2){
             await this.userRepository.getUserFriendship(targetUserId, requestingUser.id);
         }
+
         res.status(200).json({
             message: "Friend removed",
         });

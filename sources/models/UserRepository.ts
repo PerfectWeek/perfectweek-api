@@ -80,9 +80,11 @@ export class UserRepository {
             });
     }
 
-    public readonly updateUserFriendship = async  (requestingUserId: number,
-                                                   targetUserId: number,
-                                                   confirmed: boolean): Promise<UserFriendship> => {
+    public readonly updateUserFriendship = async (
+        requestingUserId: number,
+        targetUserId: number,
+        confirmed: boolean,
+    ): Promise<UserFriendship> => {
         return this.conn
             .getRepository(UserFriendship)
             .save({requestingId: requestingUserId, requestedId: targetUserId, confirmed: confirmed});
