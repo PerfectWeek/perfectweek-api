@@ -41,6 +41,7 @@ import { EventRelationshipController } from "./controllers/EventRelationshipCont
 import { FriendController } from "./controllers/FriendController";
 import { UserController } from "./controllers/UserController";
 import { UserImageController } from "./controllers/UserImageController";
+
 import * as AuthenticatedOnlyMiddleware from "./middleware/authenticatedOnlyMiddleware";
 import * as ImageUploadMiddleware from "./middleware/imageUploadMiddleware";
 

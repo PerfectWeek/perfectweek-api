@@ -1,5 +1,5 @@
 import { User } from "../models/entities/User";
-import {UserFriendship} from "../models/entities/UserFriendship";
+import {UserFriendshipStatus} from "../models/UserRepository";
 
 export class UserView {
 
@@ -18,9 +18,10 @@ export class UserView {
         };
     }
 
-    public readonly formatFriendship = (userFriendship: UserFriendship): any => {
+    public readonly formatFriendship = (friend: UserFriendshipStatus): any => {
         return {
-            requestedUser: userFriendship.requestedId,
+            user: this.formatPublicUser(friend.user),
+            confirmed: friend.confirmed,
         };
     }
 }
