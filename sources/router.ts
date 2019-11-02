@@ -118,7 +118,7 @@ export function createRouter(
     // Friend relationships
     //
     router.post(
-        "/friends",
+        "/friends/:userId",
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(friendController.inviteUser),
     );
