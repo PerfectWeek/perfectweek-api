@@ -97,7 +97,7 @@ export class UserRepository {
             });
     }
 
-    public readonly getAllFriendsForUserId = async  (requestingUserId: number, status: any): Promise<any> => {
+    public readonly getAllFriendsForUserId = async  (requestingUserId: number, status: any): Promise<UserFriendship[]> => {
         return this.conn.getRepository(UserFriendship)
             .find(
                 {

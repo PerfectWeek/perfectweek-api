@@ -125,13 +125,17 @@ export class FriendController {
     }
 
     public readonly getAllFriends = async (req: Request, res: Response) => {
-        const user = getRequestingUser(req);
+        const requestingUser = getRequestingUser(req);
 
+        const status: true | false | undefined = req.query.params;
+        if (status === undefined) {
+            throw Boom.badRequest(`You need to define a parameter to your  request`);
+        }
+        const friends = await this.userRepository.getAllFriendsForUserId(requestingUser.id, status);
 
-        const status: true | false | undefined = true;
-        const friends = await this.userRepository.getAllFriendsForUserId(user.id, status);
-
-
+        if (!friends) {
+            throw Boom.badRequest(`No friends found for this user`);
+        }
         res.status(200).json({
             message: "OK",
             friends: friends.map(this.userView.formatFriendship),

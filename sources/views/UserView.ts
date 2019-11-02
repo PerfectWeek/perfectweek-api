@@ -20,7 +20,7 @@ export class UserView {
 
     public readonly formatFriendship = (userFriendship: UserFriendship): any => {
         return {
-            requestedUser: userFriendship.requestedUser,
+            requestedUser: userFriendship.requestedId,
         };
     }
 }
