@@ -1,4 +1,5 @@
 import Boom from "@hapi/boom";
+import Cors from "cors";
 import ExpressApp, { Express, NextFunction, Request, Response, Router } from "express";
 import Morgan from "morgan";
 
@@ -10,6 +11,7 @@ export class Server {
         this.app = ExpressApp();
 
         this.app.use(ExpressApp.json());
+        this.app.use(Cors());
         this.app.use(Morgan(config.devMode ? "dev" : "combined"));
 
         this.app.use(router);
