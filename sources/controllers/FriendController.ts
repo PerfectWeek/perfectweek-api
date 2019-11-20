@@ -78,13 +78,17 @@ export class FriendController {
         }
 
         // Check existing friendship
-        const existingFriendship = await this.userRepository.getUserFriendship(invitingUser.id, requestingUser.id);
-        if (!existingFriendship) {
-            throw Boom.forbidden("No pending invitation from this User");
+        const existingFriendship1 = await this.userRepository.getUserFriendship(invitingUser.id, requestingUser.id);
+        if (!existingFriendship1) {
+            throw Boom.forbidden("No pending invitation from this userA");
         }
 
+        const existingFriendship2 = await this.userRepository.getUserFriendship(requestingUser.id, invitingUser.id);
+        if (!existingFriendship2) {
+            throw Boom.forbidden("No pending invitation from this userB");
+        }
         // Check if the friend is already in your friendlist
-        if (existingFriendship.confirmed) {
+        if (existingFriendship1.confirmed && existingFriendship2.confirmed) {
             throw Boom.forbidden("This user is already in your friend list");
         }
 
@@ -92,6 +96,8 @@ export class FriendController {
         await this.userRepository.updateUserFriendship(requestingUser.id, invitingUser.id, true);
 
         res.status(200).json({
+            test1: existingFriendship1,
+            test2: existingFriendship2,
             message: "Invitation accepted",
         });
     }
