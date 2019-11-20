@@ -3,10 +3,10 @@ import { Request, Response } from "express";
 
 import { UserFriendship } from "../models/entities/UserFriendship";
 import { UserRepository } from "../models/UserRepository";
-import {parseBool} from "../utils/parseBool";
 import { UserView } from "../views/UserView";
 
 import { getRequestingUser } from "../middleware/utils/getRequestingUser";
+import { parseBool } from "../utils/parseBool";
 
 export class FriendController {
 
@@ -114,7 +114,7 @@ export class FriendController {
         // Retrieve friend invitation
         const existingFriendship = await this.userRepository.getUserFriendship(invitingUser.id, requestingUser.id);
         if (!existingFriendship) {
-            throw Boom.forbidden("No pending invitation from this User");
+            throw Boom.forbidden("No pending invitation from this user");
         }
 
         // Make sure the invitation is not already confirmed
@@ -155,7 +155,7 @@ export class FriendController {
 
         const targetUserId = parseInt(req.params.userId, 10);
         if (isNaN(targetUserId)) {
-            throw Boom.notFound(`User id "${req.params.userId}" not found A`);
+            throw Boom.notFound(`User id "${req.params.userId}" not found `);
         }
 
         const targetUser = await this.userRepository.getUserById(targetUserId);
@@ -170,17 +170,19 @@ export class FriendController {
         // Check existing friendship
         const existingFriendship1 = await this.userRepository.getUserFriendship(requestingUser.id, targetUser.id);
         const existingFriendship2 = await this.userRepository.getUserFriendship(targetUser.id, requestingUser.id);
-        if (!existingFriendship1 && !existingFriendship2) {
+        if (!existingFriendship1 || !existingFriendship2) {
             throw Boom.forbidden("No friendship to remove");
         }
         if (existingFriendship1) {
             await this.userRepository.deleteUserFriendship(requestingUser.id, targetUserId);
         }
-        else if (existingFriendship2){
-            await this.userRepository.getUserFriendship(targetUserId, requestingUser.id);
+        if (existingFriendship2){
+            await this.userRepository.deleteUserFriendship(targetUserId, requestingUser.id);
         }
 
         res.status(200).json({
+            f1: existingFriendship1,
+            f2: existingFriendship2,
             message: "Friend removed",
         });
     }
