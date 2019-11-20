@@ -78,26 +78,20 @@ export class FriendController {
         }
 
         // Check existing friendship
-        const existingFriendship1 = await this.userRepository.getUserFriendship(invitingUser.id, requestingUser.id);
-        if (!existingFriendship1) {
-            throw Boom.forbidden("No pending invitation from this userA");
+        const existingFriendship = await this.userRepository.getUserFriendship(invitingUser.id, requestingUser.id);
+        if (!existingFriendship) {
+            throw Boom.forbidden("No pending invitation from this UserA");
         }
 
-        const existingFriendship2 = await this.userRepository.getUserFriendship(requestingUser.id, invitingUser.id);
-        if (!existingFriendship2) {
-            throw Boom.forbidden("No pending invitation from this userB");
-        }
         // Check if the friend is already in your friendlist
-        if (existingFriendship1.confirmed && existingFriendship2.confirmed) {
+        if (existingFriendship.confirmed) {
             throw Boom.forbidden("This user is already in your friend list");
         }
 
         // Accept invitation
-        await this.userRepository.updateUserFriendship(requestingUser.id, invitingUser.id, true);
+        await this.userRepository.updateUserFriendship(invitingUser.id, requestingUser.id, true);
 
         res.status(200).json({
-            test1: existingFriendship1,
-            test2: existingFriendship2,
             message: "Invitation accepted",
         });
     }
@@ -120,7 +114,7 @@ export class FriendController {
         // Retrieve friend invitation
         const existingFriendship = await this.userRepository.getUserFriendship(invitingUser.id, requestingUser.id);
         if (!existingFriendship) {
-            throw Boom.forbidden("No pending invitation from this user");
+            throw Boom.forbidden("No pending invitation from this User");
         }
 
         // Make sure the invitation is not already confirmed
@@ -187,8 +181,6 @@ export class FriendController {
         }
 
         res.status(200).json({
-            f1: existingFriendship1,
-            f2: existingFriendship2,
             message: "Friend removed",
         });
     }
