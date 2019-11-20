@@ -27,6 +27,7 @@ services:
     depends_on:
       - db
     environment:
+      NODE_ENV: "development"
       PORT: 3000
       DB_NAME: postgres
       DB_USER: postgres
@@ -37,6 +38,16 @@ services:
       ASSETS_ROOT_DIR: /assets
       FRONT_END_HOST: "localhost:4200"
       EMAIL_FROM: "Perfect Week<perfectweek_2020@labeip.epitech.eu>"
+
+  pg-admin:
+    image: dpage/pgadmin4
+    ports:
+      - 4444:80
+    depends_on:
+      - db
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.net
+      PGADMIN_DEFAULT_PASSWORD: admin
 
 volumes:
   db_data:

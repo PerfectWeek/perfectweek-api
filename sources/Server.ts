@@ -1,4 +1,5 @@
 import Boom from "@hapi/boom";
+import Cors from "cors";
 import ExpressApp, { Express, NextFunction, Request, Response, Router } from "express";
 import Morgan from "morgan";
 
@@ -6,11 +7,12 @@ export class Server {
 
     private readonly app: Express;
 
-    constructor(router: Router) {
+    constructor(router: Router, config: Config) {
         this.app = ExpressApp();
 
         this.app.use(ExpressApp.json());
-        this.app.use(Morgan("dev"));
+        this.app.use(Cors());
+        this.app.use(Morgan(config.devMode ? "dev" : "combined"));
 
         this.app.use(router);
 
@@ -48,3 +50,7 @@ export class Server {
         });
     }
 }
+
+type Config = {
+    devMode: boolean;
+};
