@@ -80,7 +80,7 @@ export class FriendController {
         // Check existing friendship
         const existingFriendship = await this.userRepository.getUserFriendship(invitingUser.id, requestingUser.id);
         if (!existingFriendship) {
-            throw Boom.forbidden("No pending invitation from this UserA");
+            throw Boom.forbidden("No pending invitation from this User");
         }
 
         // Check if the friend is already in your friendlist
