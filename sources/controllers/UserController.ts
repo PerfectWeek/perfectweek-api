@@ -2,7 +2,7 @@ import Boom from "@hapi/boom";
 import { Request, Response } from "express";
 
 import { UserRepository } from "../models/UserRepository";
-import {FriendshipStatus} from "./enums/FriendshipStatus";
+import { FriendshipStatus } from "./enums/FriendshipStatus";
 
 import { EmailValidator } from "../validators/EmailValidator";
 import { NameValidator } from "../validators/NameValidator";
@@ -103,7 +103,7 @@ export class UserController {
     }
 
     public readonly getUser = async (req: Request, res: Response) => {
-        const friend = getRequestingUser(req);
+        const requestingUser = getRequestingUser(req);
 
         // Validate request's parameters
         const targetUserId = parseInt(req.params.userId, 10);
@@ -118,8 +118,8 @@ export class UserController {
         }
 
         // Get friendship status between 2 users
-        const existingFriendship1 = await this.userRepository.getUserFriendship(friend.id, targetUserId);
-        const existingFriendship2 = await this.userRepository.getUserFriendship(targetUserId, friend.id);
+        const existingFriendship1 = await this.userRepository.getUserFriendship(requestingUser.id, targetUserId);
+        const existingFriendship2 = await this.userRepository.getUserFriendship(targetUserId, requestingUser.id);
 
         // Initiate and check FriendshipStatus
         let friendshipStatus = FriendshipStatus.MutualFriend;
