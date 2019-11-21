@@ -118,22 +118,24 @@ export class UserController {
         }
 
         // Get friendship status between 2 users
-        let message = FriendshipStatus.MutualFriend;
-        const friendshipStatus1 = await this.userRepository.getUserFriendship(friend.id, targetUserId);
-        const friendshipStatus2 = await this.userRepository.getUserFriendship(targetUserId, friend.id);
-        if (!friendshipStatus1 && !friendshipStatus2) {
-            message = FriendshipStatus.None;
+        const existingFriendship1 = await this.userRepository.getUserFriendship(friend.id, targetUserId);
+        const existingFriendship2 = await this.userRepository.getUserFriendship(targetUserId, friend.id);
+
+        // Initiate and check FriendshipStatus
+        let friendshipStatus = FriendshipStatus.MutualFriend;
+        if (!existingFriendship1 && !existingFriendship2) {
+            friendshipStatus = FriendshipStatus.None;
         }
-        else if (friendshipStatus1 && !friendshipStatus1.confirmed) {
-            message = FriendshipStatus.YouHaveInvitedHim;
+        else if (existingFriendship1 && !existingFriendship1.confirmed) {
+            friendshipStatus = FriendshipStatus.YouHaveInvitedHim;
         }
-        else if (friendshipStatus2 && !friendshipStatus2.confirmed) {
-            message = FriendshipStatus.HeHasInvitedYou;
+        else if (existingFriendship2 && !existingFriendship2.confirmed) {
+            friendshipStatus = FriendshipStatus.HeHasInvitedYou;
         }
 
         res.status(200).json({
             message: "OK",
-            friendshipStatus: message,
+            friendshipStatus: friendshipStatus,
             user: this.userView.formatPublicUser(targetUser),
         });
     }
