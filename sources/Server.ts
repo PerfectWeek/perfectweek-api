@@ -11,7 +11,10 @@ export class Server {
         this.app = ExpressApp();
 
         this.app.use(ExpressApp.json());
-        this.app.use(Cors());
+        this.app.use(Cors({
+            origin: "*",
+            methods: ["GET", "PUT", "POST", "DELETE"],
+        }));
         this.app.use(Morgan(config.devMode ? "dev" : "combined"));
 
         this.app.use(router);
