@@ -3,10 +3,10 @@ import { Request, Response } from "express";
 
 import { UserFriendship } from "../models/entities/UserFriendship";
 import { UserRepository } from "../models/UserRepository";
-import {parseBool} from "../utils/parseBool";
 import { UserView } from "../views/UserView";
 
 import { getRequestingUser } from "../middleware/utils/getRequestingUser";
+import { parseBool } from "../utils/parseBool";
 
 export class FriendController {
 
@@ -89,7 +89,7 @@ export class FriendController {
         }
 
         // Accept invitation
-        await this.userRepository.updateUserFriendship(requestingUser.id, invitingUser.id, true);
+        await this.userRepository.updateUserFriendship(invitingUser.id, requestingUser.id, true);
 
         res.status(200).json({
             message: "Invitation accepted",
@@ -155,7 +155,7 @@ export class FriendController {
 
         const targetUserId = parseInt(req.params.userId, 10);
         if (isNaN(targetUserId)) {
-            throw Boom.notFound(`User id "${req.params.userId}" not found A`);
+            throw Boom.notFound(`User id "${req.params.userId}" not found `);
         }
 
         const targetUser = await this.userRepository.getUserById(targetUserId);
@@ -176,8 +176,8 @@ export class FriendController {
         if (existingFriendship1) {
             await this.userRepository.deleteUserFriendship(requestingUser.id, targetUserId);
         }
-        else if (existingFriendship2){
-            await this.userRepository.getUserFriendship(targetUserId, requestingUser.id);
+        if (existingFriendship2){
+            await this.userRepository.deleteUserFriendship(targetUserId, requestingUser.id);
         }
 
         res.status(200).json({

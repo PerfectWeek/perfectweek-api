@@ -87,7 +87,11 @@ export class UserRepository {
     ): Promise<UserFriendship> => {
         return this.conn
             .getRepository(UserFriendship)
-            .save({requestingId: requestingUserId, requestedId: targetUserId, confirmed: confirmed});
+            .save({
+                requestingId: requestingUserId,
+                requestedId: targetUserId,
+                confirmed: confirmed,
+            });
     }
 
     public readonly deleteUserFriendship = async  (requestingUserId: number, targetUserId: number): Promise<void> => {
