@@ -2,6 +2,7 @@ import Boom from "@hapi/boom";
 import { Request, Response } from "express";
 
 import { UserRepository } from "../models/UserRepository";
+import { FriendshipStatus } from "./enums/FriendshipStatus";
 
 import { EmailValidator } from "../validators/EmailValidator";
 import { NameValidator } from "../validators/NameValidator";
@@ -102,6 +103,8 @@ export class UserController {
     }
 
     public readonly getUser = async (req: Request, res: Response) => {
+        const requestingUser = getRequestingUser(req);
+
         // Validate request's parameters
         const targetUserId = parseInt(req.params.userId, 10);
         if (isNaN(targetUserId)) {
@@ -114,8 +117,25 @@ export class UserController {
             throw Boom.notFound("User does not exist");
         }
 
+        // Get friendship status between 2 users
+        const existingFriendship1 = await this.userRepository.getUserFriendship(requestingUser.id, targetUserId);
+        const existingFriendship2 = await this.userRepository.getUserFriendship(targetUserId, requestingUser.id);
+
+        // Initiate and check FriendshipStatus
+        let friendshipStatus = FriendshipStatus.MutualFriend;
+        if (!existingFriendship1 && !existingFriendship2) {
+            friendshipStatus = FriendshipStatus.None;
+        }
+        else if (existingFriendship1 && !existingFriendship1.confirmed) {
+            friendshipStatus = FriendshipStatus.YouHaveInvitedHim;
+        }
+        else if (existingFriendship2 && !existingFriendship2.confirmed) {
+            friendshipStatus = FriendshipStatus.HeHasInvitedYou;
+        }
+
         res.status(200).json({
             message: "OK",
+            friendshipStatus: friendshipStatus,
             user: this.userView.formatPublicUser(targetUser),
         });
     }
