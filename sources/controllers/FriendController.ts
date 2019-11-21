@@ -170,7 +170,7 @@ export class FriendController {
         // Check existing friendship
         const existingFriendship1 = await this.userRepository.getUserFriendship(requestingUser.id, targetUser.id);
         const existingFriendship2 = await this.userRepository.getUserFriendship(targetUser.id, requestingUser.id);
-        if (!existingFriendship1 || !existingFriendship2) {
+        if (!existingFriendship1 && !existingFriendship2) {
             throw Boom.forbidden("No friendship to remove");
         }
         if (existingFriendship1) {
