@@ -189,12 +189,12 @@ export function createRouter(
     //
     // Calendar image
     //
-    router.get(
+    router.put(
         "/calendars/:calendarId/images/icon",
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(calendarImageController.uploadImage),
     );
-    router.put(
+    router.get(
         "/calendars/:calendarId/images/icon",
         asyncHandler(authenticatedOnlyMiddleware),
         imageUploadMiddleware.single("image"),
