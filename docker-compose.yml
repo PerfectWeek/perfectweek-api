@@ -36,7 +36,7 @@ services:
       DB_PASSWORD: password
       JWT_SECRET_KEY: secret
       ASSETS_ROOT_DIR: /assets
-      FRONT_END_HOST: "localhost:4200"
+      FRONT_END_HOST: "http://localhost:4200"
       EMAIL_FROM: "Perfect Week<perfectweek_2020@labeip.epitech.eu>"
 
   pg-admin:

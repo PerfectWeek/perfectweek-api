@@ -20,7 +20,7 @@
         "no-console": [true, "log", "debug"],
         "no-default-export": true,
         "object-literal-shorthand": false,
-        "object-literal-sort-keys": [true, "match-declaration-order-only"],
+        "object-literal-sort-keys": false,
         "one-line": [true, "check-open-brace"],
         "promise-function-async": true,
         "variable-name": {

@@ -12,6 +12,7 @@ import { EventController } from "./controllers/EventController";
 import { EventImageController } from "./controllers/EventImageController";
 import { EventRelationshipController } from "./controllers/EventRelationshipController";
 import { FriendController } from "./controllers/FriendController";
+import { GoogleOauthController } from "./controllers/GoogleOauthController";
 import { UserController } from "./controllers/UserController";
 import { UserImageController } from "./controllers/UserImageController";
 
@@ -31,6 +32,7 @@ export function createRouter(
     eventImageController: EventImageController,
     eventRelationshipController: EventRelationshipController,
     friendController: FriendController,
+    googleOauthController: GoogleOauthController,
     userController: UserController,
     userImageController: UserImageController,
     // Middleware
@@ -65,6 +67,18 @@ export function createRouter(
     router.get(
         "/auth/local/validate-email/:uuid",
         asyncHandler(authLocalController.validateEmail),
+    );
+
+    //
+    // Auth (google)
+    //
+    router.get(
+        "/auth/google/url",
+        googleOauthController.getOauthUri,
+    );
+    router.post(
+        "/auth/google/callback",
+        asyncHandler(googleOauthController.callback),
     );
 
     //

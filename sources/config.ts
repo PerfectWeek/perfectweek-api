@@ -17,6 +17,9 @@ export interface Config {
     readonly MAILGUN_DOMAIN?: string;
 
     readonly FRONT_END_HOST: string;
+
+    readonly GOOGLE_CLIENT_ID: string;
+    readonly GOOGLE_SECRET_ID: string;
 }
 
 export function loadConfig(): Config {
@@ -57,5 +60,8 @@ export function loadConfig(): Config {
         MAILGUN_DOMAIN: MAILGUN_DOMAIN,
 
         FRONT_END_HOST: envOrThrow("FRONT_END_HOST"),
+
+        GOOGLE_CLIENT_ID: envOrThrow("GOOGLE_CLIENT_ID"),
+        GOOGLE_SECRET_ID: envOrThrow("GOOGLE_SECRET_ID"),
     };
 }
