@@ -8,6 +8,9 @@ export class UserView {
             email: user.email,
             id: user.id,
             name: user.name,
+            providers: {
+                google: user.googleProviderPayload !== null,
+            },
         };
     }
 
