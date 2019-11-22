@@ -199,6 +199,7 @@ function createServer(
     const googleOauthController = new GoogleOauthController(
         userRepository,
         googleOauthService,
+        jwtService,
     );
     const userController = new UserController(
         userRepository,

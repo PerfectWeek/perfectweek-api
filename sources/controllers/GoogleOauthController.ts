@@ -4,6 +4,7 @@ import { Request, Response } from "express";
 import { User } from "../models/entities/User";
 import { UserRepository } from "../models/UserRepository";
 import { GoogleOauthService } from "../services/auth/GoogleOauthService";
+import { JwtService } from "../services/JwtService";
 
 export class GoogleOauthController {
 
@@ -12,6 +13,7 @@ export class GoogleOauthController {
         private readonly userRepository: UserRepository,
         // Services
         private readonly googleOauthService: GoogleOauthService,
+        private readonly jwtService: JwtService,
     ) { }
 
     public readonly getOauthUri = (_req: Request, res: Response) => {
@@ -55,11 +57,18 @@ export class GoogleOauthController {
                 timezone: 0,
             });
         }
-        const savedUser = await this.userRepository.updateUser(user);
+
+        // Get User token
+        const userToken = this.jwtService.tokenize({ id: user.id });
 
         res.status(200).json({
             message: "OK",
-            user: savedUser,
+            token: userToken,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+            },
         });
     }
 }
