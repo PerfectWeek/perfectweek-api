@@ -94,6 +94,12 @@ export class UserRepository {
             });
     }
 
+    public readonly getAllUsers = async (): Promise<User[]> => {
+        return this.conn
+            .getRepository(User)
+            .find();
+    }
+
     public readonly deleteUserFriendship = async  (requestingUserId: number, targetUserId: number): Promise<void> => {
         await this.conn
             .getRepository(UserFriendship)

@@ -45,6 +45,7 @@ import { EventImageController } from "./controllers/EventImageController";
 import { EventRelationshipController } from "./controllers/EventRelationshipController";
 import { FriendController } from "./controllers/FriendController";
 import { GoogleOauthController } from "./controllers/GoogleOauthController";
+import { SearchController } from "./controllers/SearchController";
 import { UserController } from "./controllers/UserController";
 import { UserImageController } from "./controllers/UserImageController";
 
@@ -201,6 +202,9 @@ function createServer(
         googleOauthService,
         jwtService,
     );
+    const searchController = new SearchController(
+        userRepository,
+    );
     const userController = new UserController(
         userRepository,
         emailValidator,
@@ -237,6 +241,7 @@ function createServer(
         eventRelationshipController,
         friendController,
         googleOauthController,
+        searchController,
         userController,
         userImageController,
         // Middleware
