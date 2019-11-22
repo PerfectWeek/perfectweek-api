@@ -13,6 +13,7 @@ import { EventImageController } from "./controllers/EventImageController";
 import { EventRelationshipController } from "./controllers/EventRelationshipController";
 import { FriendController } from "./controllers/FriendController";
 import { GoogleOauthController } from "./controllers/GoogleOauthController";
+import { SearchController } from "./controllers/SearchController";
 import { UserController } from "./controllers/UserController";
 import { UserImageController } from "./controllers/UserImageController";
 
@@ -33,6 +34,7 @@ export function createRouter(
     eventRelationshipController: EventRelationshipController,
     friendController: FriendController,
     googleOauthController: GoogleOauthController,
+    searchController: SearchController,
     userController: UserController,
     userImageController: UserImageController,
     // Middleware
@@ -324,6 +326,15 @@ export function createRouter(
         "/assistant/perfect-week",
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(assistantController.perfectWeek),
+    );
+
+    //
+    // Search (User)
+    //
+    router.get(
+        "/search/users",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(searchController.searchUsers),
     );
 
     return router;
