@@ -37,6 +37,8 @@
         "cors": "^2.8.5",
         "express": "^4.17.1",
         "glob": "^7.1.4",
+        "google-auth-library": "^5.5.1",
+        "googleapis": "^45.0.0",
         "jsonwebtoken": "^8.5.1",
         "mailgun-js": "^0.22.0",
         "mime": "^2.4.4",

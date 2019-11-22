@@ -19,6 +19,7 @@ import { UserRepository } from "./models/UserRepository";
 
 import { AssistantEventSuggestionService } from "./services/assistant/AssistantEventSuggestionService";
 import { AssistantSlotService } from "./services/assistant/AssistantSlotService";
+import { GoogleOauthService } from "./services/auth/GoogleOauthService";
 import { DateService } from "./services/DateService";
 import { ImageStorageService } from "./services/ImageStorageService";
 import { JwtService } from "./services/JwtService";
@@ -43,6 +44,7 @@ import { EventController } from "./controllers/EventController";
 import { EventImageController } from "./controllers/EventImageController";
 import { EventRelationshipController } from "./controllers/EventRelationshipController";
 import { FriendController } from "./controllers/FriendController";
+import { GoogleOauthController } from "./controllers/GoogleOauthController";
 import { UserController } from "./controllers/UserController";
 import { UserImageController } from "./controllers/UserImageController";
 
@@ -94,6 +96,12 @@ function createServer(
     const assistantEventSuggestionService = new AssistantEventSuggestionService();
     const assistantSlotService = new AssistantSlotService();
     const dateService = new DateService();
+    const googleOauthService = new GoogleOauthService({
+        clientId: config.GOOGLE_CLIENT_ID,
+        clientSecret: config.GOOGLE_SECRET_ID,
+        redirectUri: `${config.FRONT_END_HOST}/login/google-callback`,
+        scopes: "email profile openid https://www.googleapis.com/auth/calendar.events.readonly",
+    });
     const jwtService = new JwtService(config.JWT_SECRET_KEY);
     const mailService = config.EMAIL_ENABLED
         ? createMailService(config.MAILGUN_API_KEY!, config.MAILGUN_DOMAIN!, config.EMAIL_FROM)
@@ -188,6 +196,10 @@ function createServer(
         userRepository,
         userView,
     );
+    const googleOauthController = new GoogleOauthController(
+        userRepository,
+        googleOauthService,
+    );
     const userController = new UserController(
         userRepository,
         emailValidator,
@@ -223,6 +235,7 @@ function createServer(
         eventImageController,
         eventRelationshipController,
         friendController,
+        googleOauthController,
         userController,
         userImageController,
         // Middleware

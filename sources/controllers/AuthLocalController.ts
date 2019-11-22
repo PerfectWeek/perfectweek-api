@@ -147,6 +147,7 @@ export class AuthLocalController {
             cipheredPassword: pendingUser.cipheredPassword,
             email: pendingUser.email,
             name: pendingUser.name,
+            googleProviderPayload: null,
         }));
         await this.pendingUserRepository.deletePendingUserById(pendingUser.id);
 
@@ -169,7 +170,7 @@ export class AuthLocalController {
 
         // Authenticate the User
         const user = await this.userRepository.getUserByEmail(userEmail);
-        if (!user
+        if (!user || !user.cipheredPassword
             || !this.passwordService.validatePassword(user.cipheredPassword, userPassword)) {
             throw Boom.unauthorized("Invalid email or password");
         }
