@@ -8,13 +8,13 @@ export class NotificationService {
         this.usersNotifiers = new Map();
     }
 
-    public async notifyUser(userId: number, event: string, data: NotificationData): Promise<void[]> {
+    public async notifyUser(userId: number, data: NotificationData): Promise<void[]> {
         const userNotifiers = this.usersNotifiers.get(userId);
         if (!userNotifiers) {
             return Promise.all([]);
         }
 
-        return Promise.all(userNotifiers.map(n => n.notify(event, data)));
+        return Promise.all(userNotifiers.map(n => n.notify(data)));
     }
 
     public addNotifier(userId: number, notifier: INotifier): void {

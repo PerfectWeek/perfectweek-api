@@ -1,3 +1,4 @@
+import Expo from "expo-server-sdk";
 import "reflect-metadata";
 import { Connection, createConnection } from "typeorm";
 
@@ -24,6 +25,7 @@ import { DateService } from "./services/DateService";
 import { ImageStorageService } from "./services/ImageStorageService";
 import { JwtService } from "./services/JwtService";
 import { createMailService } from "./services/MailService";
+import { NotificationService } from "./services/notification/NotificationService";
 import { PasswordService } from "./services/PasswordService";
 
 import { EmailValidator } from "./validators/EmailValidator";
@@ -43,6 +45,7 @@ import { CalendarMemberController } from "./controllers/CalendarMemberController
 import { EventController } from "./controllers/EventController";
 import { EventImageController } from "./controllers/EventImageController";
 import { EventRelationshipController } from "./controllers/EventRelationshipController";
+import { ExpoController } from "./controllers/ExpoController";
 import { FriendController } from "./controllers/FriendController";
 import { GoogleOauthController } from "./controllers/GoogleOauthController";
 import { SearchController } from "./controllers/SearchController";
@@ -114,9 +117,13 @@ function createServer(
     const eventImageStorageService = new ImageStorageService(
         assetsInfo.events.image.baseDir,
     );
+    const notificationService = new NotificationService();
     const userProfileImageStorageService = new ImageStorageService(
         assetsInfo.users.profile.baseDir,
     );
+
+    // Expo
+    const expo = new Expo();
 
     // Create Views
     const calendarView = new CalendarView();
@@ -193,6 +200,10 @@ function createServer(
         eventPolicy,
         eventView,
     );
+    const expoController = new ExpoController(
+        expo,
+        notificationService,
+    );
     const friendController = new FriendController(
         userRepository,
         userView,
@@ -239,6 +250,7 @@ function createServer(
         eventController,
         eventImageController,
         eventRelationshipController,
+        expoController,
         friendController,
         googleOauthController,
         searchController,

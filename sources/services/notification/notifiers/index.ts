@@ -1,4 +1,5 @@
 export type NotificationData = {
+    eventType: string;
     title: string;
     description: string;
     payload: any;
@@ -7,5 +8,5 @@ export type NotificationData = {
 export interface INotifier {
     readonly id: string;
 
-    notify(event: string, data: NotificationData): Promise<void>;
+    notify(data: NotificationData): Promise<void>;
 }
