@@ -64,7 +64,7 @@ export class CalendarImageController {
     }
 
     public readonly getImage = async (req: Request, res: Response) => {
-        const requestingUser = getRequestingUser(req);
+        // const requestingUser = getRequestingUser(req);
 
         // Validate request's parameters
         const calendarId: number = parseInt(req.params.calendarId, 10);
@@ -72,15 +72,18 @@ export class CalendarImageController {
             throw Boom.notFound(`Calendar id "${req.params.calendarId}" is invalid`);
         }
 
-        // Make sure User can access Calendar
-        const calendarMembership = await this.calendarRepository.getCalendarMemberShip(calendarId, requestingUser.id);
-        if (!calendarMembership
-            || !this.calendarPolicy.userCanReadCalendar(calendarMembership)) {
-            throw Boom.unauthorized("You cannot access this Calendar");
-        }
+        // // Make sure User can access Calendar
+        // const calendarMembership = await this.calendarRepository.getCalendarMemberShip(
+        //     calendarId,
+        //     requestingUser.id
+        // );
+        // if (!calendarMembership
+        //     || !this.calendarPolicy.userCanReadCalendar(calendarMembership)) {
+        //     throw Boom.unauthorized("You cannot access this Calendar");
+        // }
 
         const imagePath = this.iconImageStorageService.getImageOrDefault(
-            calendarMembership.calendarId,
+            calendarId,
             this.iconImageDefault,
         );
 

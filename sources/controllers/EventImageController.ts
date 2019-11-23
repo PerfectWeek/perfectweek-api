@@ -65,7 +65,7 @@ export class EventImageController {
     }
 
     public readonly getImage = async (req: Request, res: Response) => {
-        const requestingUser = getRequestingUser(req);
+        // const requestingUser = getRequestingUser(req);
 
         // Validate request's parameters
         const eventId: number = parseInt(req.params.eventId, 10);
@@ -74,19 +74,19 @@ export class EventImageController {
         }
 
         // Retrieve Event
-        const event = await this.eventRepository.getEventWithAttendeesAndCalendarsForUser(eventId, requestingUser.id);
+        const event = await this.eventRepository.getEventById(eventId);
         if (!event) {
             throw Boom.notFound("Event not found");
         }
 
         // Retrieve attendee status
-        const eventStatus = await this.eventRepository.getEventRelationship(event.id, requestingUser.id);
+        // const eventStatus = await this.eventRepository.getEventRelationship(event.id, requestingUser.id);
 
-        // Make sure the User can access this Event
-        if (!this.eventPolicy.eventIsPublic(event)
-            && (!eventStatus || !this.eventPolicy.userCanReadEvent(eventStatus))) {
-            throw Boom.unauthorized("You cannot access this Event");
-        }
+        // // Make sure the User can access this Event
+        // if (!this.eventPolicy.eventIsPublic(event)
+        //     && (!eventStatus || !this.eventPolicy.userCanReadEvent(eventStatus))) {
+        //     throw Boom.unauthorized("You cannot access this Event");
+        // }
 
         // Retrieve image
         const imagePath = this.imageStorageService.getImageOrDefault(
