@@ -210,12 +210,12 @@ export function createRouter(
     router.put(
         "/calendars/:calendarId/images/icon",
         asyncHandler(authenticatedOnlyMiddleware),
+        imageUploadMiddleware.single("image"),
         asyncHandler(calendarImageController.uploadImage),
     );
     router.get(
         "/calendars/:calendarId/images/icon",
-        asyncHandler(authenticatedOnlyMiddleware),
-        imageUploadMiddleware.single("image"),
+        // asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(calendarImageController.getImage),
     );
 
@@ -307,7 +307,7 @@ export function createRouter(
     );
     router.get(
         "/events/:eventId/images/icon",
-        asyncHandler(authenticatedOnlyMiddleware),
+        // asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(eventImageController.getImage),
     );
 
