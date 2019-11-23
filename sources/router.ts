@@ -11,6 +11,7 @@ import { CalendarMemberController } from "./controllers/CalendarMemberController
 import { EventController } from "./controllers/EventController";
 import { EventImageController } from "./controllers/EventImageController";
 import { EventRelationshipController } from "./controllers/EventRelationshipController";
+import { ExpoController } from "./controllers/ExpoController";
 import { FriendController } from "./controllers/FriendController";
 import { GoogleOauthController } from "./controllers/GoogleOauthController";
 import { SearchController } from "./controllers/SearchController";
@@ -32,6 +33,7 @@ export function createRouter(
     eventController: EventController,
     eventImageController: EventImageController,
     eventRelationshipController: EventRelationshipController,
+    expoController: ExpoController,
     friendController: FriendController,
     googleOauthController: GoogleOauthController,
     searchController: SearchController,
@@ -335,6 +337,15 @@ export function createRouter(
         "/search/users",
         asyncHandler(authenticatedOnlyMiddleware),
         asyncHandler(searchController.searchUsers),
+    );
+
+    //
+    // Expo
+    //
+    router.post(
+        "/expo/token",
+        asyncHandler(authenticatedOnlyMiddleware),
+        asyncHandler(expoController.registerToken),
     );
 
     return router;
