@@ -164,6 +164,7 @@ function createServer(
     const calendarEventController = new CalendarEventController(
         calendarRepository,
         eventRepository,
+        notificationService,
         calendarPolicy,
         eventPolicy,
     );
@@ -177,6 +178,7 @@ function createServer(
         calendarRepository,
         eventRepository,
         userRepository,
+        notificationService,
         calendarPolicy,
         calendarView,
     );
@@ -186,6 +188,7 @@ function createServer(
         calendarPolicy,
         eventPolicy,
         dateService,
+        notificationService,
         eventView,
     );
     const eventImageController = new EventImageController(
@@ -197,6 +200,7 @@ function createServer(
     const eventRelationshipController = new EventRelationshipController(
         eventRepository,
         userRepository,
+        notificationService,
         eventPolicy,
         eventView,
     );
@@ -206,6 +210,7 @@ function createServer(
     );
     const friendController = new FriendController(
         userRepository,
+        notificationService,
         userView,
     );
     const googleOauthController = new GoogleOauthController(

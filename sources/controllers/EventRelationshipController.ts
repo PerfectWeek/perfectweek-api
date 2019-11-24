@@ -5,6 +5,8 @@ import { isArray } from "util";
 import { EventRepository } from "../models/EventRepository";
 import { UserRepository } from "../models/UserRepository";
 
+import { NotificationService, sendNotificationToUser } from "../services/notification/NotificationService";
+
 import { EventPolicy } from "../policies/EventPolicy";
 
 import { getRequestingUser } from "../middleware/utils/getRequestingUser";
@@ -28,6 +30,8 @@ export class EventRelationshipController {
         // Repositories
         eventRepository: EventRepository,
         userRepository: UserRepository,
+        // Services
+        private readonly notificationService: NotificationService,
         // Polices
         eventPolicy: EventPolicy,
         // Views
@@ -117,6 +121,18 @@ export class EventRelationshipController {
             event,
             attendeesToAdd,
         );
+
+        // Send notifications to invited users
+        attendeesToAdd
+            .forEach(a => sendNotificationToUser(this.notificationService, a.user.id, {
+                title: `Event invitation`,
+                description: `${requestingUser.name} invited you to: ${event.name}`,
+                eventType: "event_invitation",
+                payload: {
+                    userId: requestingUser.id,
+                    eventId: event.id,
+                },
+            }));
 
         res.status(200).json({
             message: "OK",

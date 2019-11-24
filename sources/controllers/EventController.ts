@@ -19,6 +19,7 @@ import { CalendarRepository } from "../models/CalendarRepository";
 import { EventRepository } from "../models/EventRepository";
 
 import { DateService } from "../services/DateService";
+import { NotificationService, sendNotificationToUser } from "../services/notification/NotificationService";
 
 import { getRequestingUser } from "../middleware/utils/getRequestingUser";
 import { trim } from "../utils/string/trim";
@@ -46,6 +47,7 @@ export class EventController {
         eventPolicy: EventPolicy,
         // Services
         dateService: DateService,
+        private readonly notificationService: NotificationService,
         // Views
         eventView: EventView,
     ) {
@@ -156,6 +158,19 @@ export class EventController {
 
             // Update Event object attendees list
             createdEvent.attendees!.push(...eventAttendees);
+
+            // Send notifications to calendar members
+            calendar.members!
+                .filter(m => m.userId !== requestingUser.id)
+                .forEach(m => sendNotificationToUser(this.notificationService, m.userId, {
+                    title: `New Event`,
+                    description: `${requestingUser.name} added a new Event to: ${calendar!.name}`,
+                    eventType: "calendar_event_added",
+                    payload: {
+                        calendarId: calendar!.id,
+                        eventId: createdEvent!.id,
+                    },
+                }));
         }
 
         res.status(201).json({
