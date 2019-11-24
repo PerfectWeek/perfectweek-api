@@ -1,6 +1,6 @@
 export type GoogleProviderPayload = {
     accessToken: string;
-    refreshToken: string;
+    refreshToken?: string;
     tokenType: string;
 
     googleCalendarListSyncToken?: string;
