@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 
 import { User } from "../models/entities/User";
 import { UserRepository } from "../models/UserRepository";
-import { GoogleOauthService } from "../services/auth/GoogleOauthService";
+import { GoogleApiService } from "../services/googleapi/GoogleApiService";
 import { JwtService } from "../services/JwtService";
 
 export class GoogleOauthController {
@@ -12,7 +12,7 @@ export class GoogleOauthController {
         // Repositories
         private readonly userRepository: UserRepository,
         // Services
-        private readonly googleOauthService: GoogleOauthService,
+        private readonly googleOauthService: GoogleApiService,
         private readonly jwtService: JwtService,
     ) { }
 
@@ -43,19 +43,21 @@ export class GoogleOauthController {
         // Get corresponding User or create new one
         let user = await this.userRepository.getUserByEmail(profile.email!);
         if (!user) {
-            user = new User({
-                email: profile.email!,
-                name: !!profile.name ? profile.name : "User",
-                cipheredPassword: null,
-                googleProviderPayload: {
-                    accessToken: credentials.access_token!,
-                    refreshToken: credentials.refresh_token!,
-                    tokenType: credentials.token_type!,
-                    googleCalendarListSyncToken: undefined,
-                    syncedGoogleCalendars: {},
-                },
-                timezone: 0,
-            });
+            user = await this.userRepository.createUser(
+                new User({
+                    email: profile.email!,
+                    name: !!profile.name ? profile.name : "User",
+                    cipheredPassword: null,
+                    googleProviderPayload: {
+                        accessToken: credentials.access_token!,
+                        refreshToken: credentials.refresh_token!,
+                        tokenType: credentials.token_type!,
+                        googleCalendarListSyncToken: undefined,
+                        syncedGoogleCalendars: {},
+                    },
+                    timezone: 0,
+                }),
+            );
         }
 
         // Get User token

@@ -20,8 +20,8 @@ import { UserRepository } from "./models/UserRepository";
 
 import { AssistantEventSuggestionService } from "./services/assistant/AssistantEventSuggestionService";
 import { AssistantSlotService } from "./services/assistant/AssistantSlotService";
-import { GoogleOauthService } from "./services/auth/GoogleOauthService";
 import { DateService } from "./services/DateService";
+import { GoogleApiService } from "./services/googleapi/GoogleApiService";
 import { ImageStorageService } from "./services/ImageStorageService";
 import { JwtService } from "./services/JwtService";
 import { createMailService } from "./services/MailService";
@@ -103,12 +103,17 @@ function createServer(
     const assistantEventSuggestionService = new AssistantEventSuggestionService();
     const assistantSlotService = new AssistantSlotService();
     const dateService = new DateService();
-    const googleOauthService = new GoogleOauthService({
-        clientId: config.GOOGLE_CLIENT_ID,
-        clientSecret: config.GOOGLE_SECRET_ID,
-        redirectUri: `${config.FRONT_END_HOST}/login/google-callback`,
-        scopes: "email profile openid https://www.googleapis.com/auth/calendar.events.readonly",
-    });
+    const googleApiService = new GoogleApiService(
+        eventRepository,
+        userRepository,
+        calendarRepository,
+        {
+            clientId: config.GOOGLE_CLIENT_ID,
+            clientSecret: config.GOOGLE_SECRET_ID,
+            redirectUri: `${config.FRONT_END_HOST}/login/google-callback`,
+            scopes: "email profile openid https://www.googleapis.com/auth/calendar.readonly",
+        },
+    );
     const jwtService = new JwtService(config.JWT_SECRET_KEY);
     const mailService = config.EMAIL_ENABLED
         ? createMailService(config.MAILGUN_API_KEY!, config.MAILGUN_DOMAIN!, config.EMAIL_FROM)
@@ -162,6 +167,7 @@ function createServer(
     );
     const calendarController = new CalendarController(
         calendarRepository,
+        googleApiService,
         calendarPolicy,
         calendarView,
     );
@@ -219,7 +225,7 @@ function createServer(
     );
     const googleOauthController = new GoogleOauthController(
         userRepository,
-        googleOauthService,
+        googleApiService,
         jwtService,
     );
     const searchController = new SearchController(
