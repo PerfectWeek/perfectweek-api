@@ -1,11 +1,13 @@
 import Boom from "@hapi/boom";
 import Cors from "cors";
 import ExpressApp, { Express, NextFunction, Request, Response, Router } from "express";
+import Http, { Server as HttpServer } from "http";
 import Morgan from "morgan";
 
 export class Server {
 
     private readonly app: Express;
+    private readonly httpServer: HttpServer;
 
     constructor(router: Router, config: Config) {
         this.app = ExpressApp();
@@ -21,10 +23,14 @@ export class Server {
 
         this.add404Handler();
         this.addErrorHandler();
+
+        this.httpServer = Http.createServer(this.app);
     }
 
+    public readonly getServer = () => this.httpServer;
+
     public readonly start = (port: number, onStart: () => void) => {
-        this.app.listen(port, onStart);
+        this.httpServer.listen(port, onStart);
     }
 
     private add404Handler(): void {
