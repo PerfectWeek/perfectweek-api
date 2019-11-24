@@ -17,3 +17,12 @@ export class JwtService {
         return data;
     }
 }
+
+export function decodeUserToken(jwtService: JwtService, token: string): number | undefined {
+    try {
+        const { id: userId }: { id: number } = jwtService.decode(token);
+        return userId;
+    } catch (_) {
+        return undefined;
+    }
+}

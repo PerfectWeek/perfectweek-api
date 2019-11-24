@@ -2,8 +2,7 @@ import Boom from "@hapi/boom";
 import { NextFunction, Request, Response } from "express";
 
 import { UserRepository } from "../models/UserRepository";
-
-import { JwtService } from "../services/JwtService";
+import { decodeUserToken, JwtService } from "../services/JwtService";
 
 export type AuthenticatedOnlyMiddleware = (req: Request, res: Response, next?: NextFunction) => Promise<void>;
 
@@ -45,16 +44,4 @@ export function generateAuthenticatedOnlyMiddleware(
             next();
         }
     };
-}
-
-//
-// Helpers
-//
-function decodeUserToken(jwtService: JwtService, token: string): number | undefined {
-    try {
-        const { id: userId }: { id: number } = jwtService.decode(token);
-        return userId;
-    } catch (_) {
-        return undefined;
-    }
 }

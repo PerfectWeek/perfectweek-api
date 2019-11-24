@@ -27,6 +27,7 @@ import { JwtService } from "./services/JwtService";
 import { createMailService } from "./services/MailService";
 import { NotificationService } from "./services/notification/NotificationService";
 import { PasswordService } from "./services/PasswordService";
+import { SocketService } from "./services/SocketService";
 
 import { EmailValidator } from "./validators/EmailValidator";
 import { NameValidator } from "./validators/NameValidator";
@@ -53,9 +54,11 @@ import { UserController } from "./controllers/UserController";
 import { UserImageController } from "./controllers/UserImageController";
 
 import { Config, loadConfig } from "./config";
+import { socketHandler } from "./socketHandler";
 
 import * as AuthenticatedOnlyMiddleware from "./middleware/authenticatedOnlyMiddleware";
 import * as ImageUploadMiddleware from "./middleware/imageUploadMiddleware";
+import { SocketNotifier } from "./services/notification/notifiers/SocketNotifier";
 
 const CURRENT_DIRECTORY: string = __dirname;
 
@@ -118,6 +121,7 @@ function createServer(
         assetsInfo.events.image.baseDir,
     );
     const notificationService = new NotificationService();
+    const socketService = new SocketService();
     const userProfileImageStorageService = new ImageStorageService(
         assetsInfo.users.profile.baseDir,
     );
@@ -266,9 +270,18 @@ function createServer(
         imageUploadMiddleware,
     );
 
-    return new Server(router, {
+    // Create server
+    const server = new Server(router, {
         devMode: config.NODE_ENV === "development",
     });
+
+    // Deferred init phase
+    socketService.deferredInit(
+        server.getServer(),
+        socketHandler(userRepository, jwtService, notificationService, SocketNotifier.createFactory()),
+    );
+
+    return server;
 }
 
 function buildAssetsInfo(assetsRootDir: string) {
