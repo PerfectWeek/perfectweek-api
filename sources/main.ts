@@ -114,7 +114,9 @@ function createServer(
             clientId: config.GOOGLE_CLIENT_ID,
             clientSecret: config.GOOGLE_SECRET_ID,
             redirectUri: `${config.FRONT_END_HOST}/login/google-callback`,
-            scopes: "email profile openid https://www.googleapis.com/auth/calendar.readonly",
+            scopes: "https://www.googleapis.com/auth/userinfo.email"
+                + " https://www.googleapis.com/auth/userinfo.profile"
+                + " https://www.googleapis.com/auth/calendar.readonly",
         },
     );
     const jwtService = new JwtService(config.JWT_SECRET_KEY);

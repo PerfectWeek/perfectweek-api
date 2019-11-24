@@ -88,6 +88,14 @@ export function createRouter(
     );
 
     //
+    // Auth (google-mobile)
+    //
+    router.post(
+        "/auth/google-mobile/callback",
+        asyncHandler(googleOauthController.callbackMobile),
+    );
+
+    //
     // Auth (facebook)
     //
     router.post(
