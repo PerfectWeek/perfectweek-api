@@ -56,7 +56,7 @@ export class GoogleApiService {
         return response.tokens;
     }
 
-    public async getUserInfo(accessToken: string, refreshToken: string): Promise<oauth2_v2.Schema$Userinfoplus> {
+    public async getUserInfo(accessToken: string, refreshToken?: string): Promise<oauth2_v2.Schema$Userinfoplus> {
         const client = this.createOauthApiClient(accessToken, refreshToken);
 
         const res = await client.userinfo.get();
@@ -108,7 +108,7 @@ export class GoogleApiService {
         return Promise.all(calendarsPromises);
     }
 
-    private createOauthApiClient(accessToken: string, refreshToken: string): oauth2_v2.Oauth2 {
+    private createOauthApiClient(accessToken: string, refreshToken?: string): oauth2_v2.Oauth2 {
         this.oauth.setCredentials({
             refresh_token: refreshToken,
             access_token: accessToken,
