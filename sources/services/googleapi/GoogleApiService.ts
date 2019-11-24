@@ -131,7 +131,7 @@ export class GoogleApiService {
         calendarMembers: CalendarMember[],
         pwId: number,
         googleCalendar: calendar_v3.Schema$CalendarListEntry,
-        ): Calendar {
+    ): Calendar {
 
         if (pwId === undefined) {
             const calendar = new Calendar({ name: googleCalendar.summary!, color: undefined });
