@@ -49,3 +49,16 @@ export class NotificationService {
         }
     }
 }
+
+export function sendNotificationToUser(
+    notificationService: NotificationService,
+    userId: number,
+    data: NotificationData,
+): void {
+    notificationService
+        .notifyUser(userId, data)
+        .catch((e: Error) => {
+            // Just log the error, this is not a fatal one
+            console.error(e.stack);
+        });
+}

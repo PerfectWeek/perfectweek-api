@@ -4,6 +4,8 @@ import { Request, Response } from "express";
 import { CalendarRepository } from "../models/CalendarRepository";
 import { EventRepository } from "../models/EventRepository";
 
+import { NotificationService, sendNotificationToUser } from "../services/notification/NotificationService";
+
 import { CalendarPolicy } from "../policies/CalendarPolicy";
 import { EventPolicy } from "../policies/EventPolicy";
 
@@ -23,6 +25,8 @@ export class CalendarEventController {
         // Repositories
         calendarRepository: CalendarRepository,
         eventRepository: EventRepository,
+        // Services
+        private readonly notificationService: NotificationService,
         // Policies
         calendarPolicy: CalendarPolicy,
         eventPolicy: EventPolicy,
@@ -86,6 +90,19 @@ export class CalendarEventController {
                 status: EventAttendeeStatus.None,
             }));
         await this.eventRepository.addUsersToEvent(event, newAttendees);
+
+        // Send notifications to calendar members
+        calendar.members!
+            .filter(m => m.userId !== requestingUser.id)
+            .forEach(m => sendNotificationToUser(this.notificationService, m.userId, {
+                title: `New Event`,
+                description: `${requestingUser.name} added an Event to: ${calendar.name}`,
+                eventType: "calendar_event_added",
+                payload: {
+                    calendarId: calendar.id,
+                    eventId: event.id,
+                },
+            }));
 
         res.status(200).json({
             message: "Event added to Calendar",

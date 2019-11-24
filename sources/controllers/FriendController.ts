@@ -3,6 +3,9 @@ import { Request, Response } from "express";
 
 import { UserFriendship } from "../models/entities/UserFriendship";
 import { UserRepository } from "../models/UserRepository";
+
+import { NotificationService, sendNotificationToUser } from "../services/notification/NotificationService";
+
 import { UserView } from "../views/UserView";
 
 import { getRequestingUser } from "../middleware/utils/getRequestingUser";
@@ -16,6 +19,8 @@ export class FriendController {
     constructor(
         // Repository
         userRepository: UserRepository,
+        // Services
+        private readonly notificationService: NotificationService,
         // View
         userView: UserView,
     ) {
@@ -57,6 +62,16 @@ export class FriendController {
             confirmed: false,
         }));
 
+        // Send notification
+        sendNotificationToUser(this.notificationService, targetUser.id, {
+            title: "Friend request",
+            description: `${requestingUser.name} sent you an invitation`,
+            eventType: "friend_request",
+            payload: {
+                requestingUserId: requestingUser.id,
+            },
+        });
+
         res.status(200).json({
             message: "Invitation sent",
         });
@@ -83,13 +98,23 @@ export class FriendController {
             throw Boom.forbidden("No pending invitation from this User");
         }
 
-        // Check if the friend is already in your friendlist
+        // Check if the friend is already in your friend list
         if (existingFriendship.confirmed) {
             throw Boom.forbidden("This user is already in your friend list");
         }
 
         // Accept invitation
         await this.userRepository.updateUserFriendship(invitingUser.id, requestingUser.id, true);
+
+        // Send notification
+        sendNotificationToUser(this.notificationService, invitingUserId, {
+            title: "New friend",
+            description: `${requestingUser.name} accepted your invitation`,
+            eventType: "friend_accepted",
+            payload: {
+                requestingUserId: requestingUser.id,
+            },
+        });
 
         res.status(200).json({
             message: "Invitation accepted",

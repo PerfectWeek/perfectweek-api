@@ -8,6 +8,8 @@ import { CalendarRepository } from "../models/CalendarRepository";
 import { EventRepository } from "../models/EventRepository";
 import { UserRepository } from "../models/UserRepository";
 
+import { NotificationService, sendNotificationToUser } from "../services/notification/NotificationService";
+
 import { CalendarPolicy } from "../policies/CalendarPolicy";
 
 import { CalendarView } from "../views/CalendarView";
@@ -34,6 +36,8 @@ export class CalendarMemberController {
         calendarRepository: CalendarRepository,
         eventRepository: EventRepository,
         userRepository: UserRepository,
+        // Services
+        private readonly notificationService: NotificationService,
         // Policies
         calendarPolicy: CalendarPolicy,
         // Views
@@ -138,6 +142,16 @@ export class CalendarMemberController {
                 status: EventAttendeeStatus.None,
             }));
             await this.eventRepository.associateUserToEvents(m.user, eventAttendees);
+
+            // Notify user
+            sendNotificationToUser(this.notificationService, m.user.id, {
+                title: "Calendar invitation",
+                description: `You have been invited to join the Calendar: ${calendar.name}`,
+                eventType: "calendar_member_invite",
+                payload: {
+                    calendarId: calendar.id,
+                },
+            });
         }));
 
         res.status(200).json({
