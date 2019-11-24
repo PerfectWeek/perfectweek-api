@@ -12,6 +12,7 @@ import { EventController } from "./controllers/EventController";
 import { EventImageController } from "./controllers/EventImageController";
 import { EventRelationshipController } from "./controllers/EventRelationshipController";
 import { ExpoController } from "./controllers/ExpoController";
+import { FacebookOauthController } from "./controllers/FacebookOauthController";
 import { FriendController } from "./controllers/FriendController";
 import { GoogleOauthController } from "./controllers/GoogleOauthController";
 import { SearchController } from "./controllers/SearchController";
@@ -34,6 +35,7 @@ export function createRouter(
     eventImageController: EventImageController,
     eventRelationshipController: EventRelationshipController,
     expoController: ExpoController,
+    facebookOauthController: FacebookOauthController,
     friendController: FriendController,
     googleOauthController: GoogleOauthController,
     searchController: SearchController,
@@ -83,6 +85,14 @@ export function createRouter(
     router.post(
         "/auth/google/callback",
         asyncHandler(googleOauthController.callback),
+    );
+
+    //
+    // Auth (facebook)
+    //
+    router.post(
+        "/auth/facebook/callback",
+        asyncHandler(facebookOauthController.callback),
     );
 
     //

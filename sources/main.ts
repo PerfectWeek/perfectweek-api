@@ -21,11 +21,13 @@ import { UserRepository } from "./models/UserRepository";
 import { AssistantEventSuggestionService } from "./services/assistant/AssistantEventSuggestionService";
 import { AssistantSlotService } from "./services/assistant/AssistantSlotService";
 import { DateService } from "./services/DateService";
+import { FacebookApiService } from "./services/facebookApi/FacebookApiService";
 import { GoogleApiService } from "./services/googleapi/GoogleApiService";
 import { ImageStorageService } from "./services/ImageStorageService";
 import { JwtService } from "./services/JwtService";
 import { createMailService } from "./services/MailService";
 import { NotificationService } from "./services/notification/NotificationService";
+import { SocketNotifier } from "./services/notification/notifiers/SocketNotifier";
 import { PasswordService } from "./services/PasswordService";
 import { SocketService } from "./services/SocketService";
 
@@ -47,6 +49,7 @@ import { EventController } from "./controllers/EventController";
 import { EventImageController } from "./controllers/EventImageController";
 import { EventRelationshipController } from "./controllers/EventRelationshipController";
 import { ExpoController } from "./controllers/ExpoController";
+import { FacebookOauthController } from "./controllers/FacebookOauthController";
 import { FriendController } from "./controllers/FriendController";
 import { GoogleOauthController } from "./controllers/GoogleOauthController";
 import { SearchController } from "./controllers/SearchController";
@@ -58,7 +61,6 @@ import { socketHandler } from "./socketHandler";
 
 import * as AuthenticatedOnlyMiddleware from "./middleware/authenticatedOnlyMiddleware";
 import * as ImageUploadMiddleware from "./middleware/imageUploadMiddleware";
-import { SocketNotifier } from "./services/notification/notifiers/SocketNotifier";
 
 const CURRENT_DIRECTORY: string = __dirname;
 
@@ -103,6 +105,7 @@ function createServer(
     const assistantEventSuggestionService = new AssistantEventSuggestionService();
     const assistantSlotService = new AssistantSlotService();
     const dateService = new DateService();
+    const facebookApiService = new FacebookApiService();
     const googleApiService = new GoogleApiService(
         eventRepository,
         userRepository,
@@ -218,6 +221,11 @@ function createServer(
         expo,
         notificationService,
     );
+    const facebookOauthController = new FacebookOauthController(
+        userRepository,
+        facebookApiService,
+        jwtService,
+    );
     const friendController = new FriendController(
         userRepository,
         notificationService,
@@ -266,6 +274,7 @@ function createServer(
         eventImageController,
         eventRelationshipController,
         expoController,
+        facebookOauthController,
         friendController,
         googleOauthController,
         searchController,
