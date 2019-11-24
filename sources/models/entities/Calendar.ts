@@ -19,6 +19,9 @@ export class Calendar {
     @Column({ default: Calendar.DEFAULT_COLOR })
     public color: string;
 
+    @Column({ name: "google_calendar_sync_token", type: "varchar", nullable: true, default: null })
+    public googleCalendarSyncToken: string | null;
+
     @Column({
         type: "simple-json",
         name: "time_slot_preferences",
@@ -33,6 +36,7 @@ export class Calendar {
         this.id = 0;
         this.name = data && data.name || "";
         this.color = data && data.color || Calendar.DEFAULT_COLOR;
+        this.googleCalendarSyncToken = null;
         this.timeSlotPreferences = BASE_TIME_SLOT_PREFERENCES;
 
         this.entries = undefined;

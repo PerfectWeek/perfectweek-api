@@ -7,6 +7,8 @@ import { Calendar } from "../models/entities/Calendar";
 
 import { CalendarRepository } from "../models/CalendarRepository";
 
+import { GoogleApiService } from "../services/googleapi/GoogleApiService";
+
 import { CalendarPolicy } from "../policies/CalendarPolicy";
 
 import { CalendarView } from "../views/CalendarView";
@@ -20,6 +22,8 @@ export class CalendarController {
 
     private readonly calendarRepository: CalendarRepository;
 
+    private readonly googleApiService: GoogleApiService;
+
     private readonly calendarPolicy: CalendarPolicy;
 
     private readonly calendarView: CalendarView;
@@ -27,12 +31,15 @@ export class CalendarController {
     constructor(
         // Repositories
         calendarRepository: CalendarRepository,
+        // Services
+        googleApiService: GoogleApiService,
         // Policies
         calendarPolicy: CalendarPolicy,
         // Views
         calendarView: CalendarView,
     ) {
         this.calendarRepository = calendarRepository;
+        this.googleApiService = googleApiService;
         this.calendarPolicy = calendarPolicy;
         this.calendarView = calendarView;
     }
@@ -118,7 +125,20 @@ export class CalendarController {
         }
 
         // Retrieve Calendars
-        const calendarMembers = await this.calendarRepository.getAllCalendarsForUserId(requestingUser.id, options);
+        let calendarMembers = await this.calendarRepository.getAllCalendarsForUserId(requestingUser.id, options);
+
+        // Fetch google calendars
+        if (requestingUser.googleProviderPayload) {
+            try {
+                await this.googleApiService.fetchGoogleCalendars(calendarMembers, requestingUser);
+                calendarMembers = await this.calendarRepository.getAllCalendarsForUserId(
+                    requestingUser.id,
+                    options,
+                );
+            } catch (e) {
+                // Error is not fatal
+            }
+        }
 
         res.status(200).json({
             message: "OK",
