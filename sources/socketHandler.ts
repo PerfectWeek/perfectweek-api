@@ -40,6 +40,11 @@ const onAuth = (
         // Register notifier
         const socketNotifier = socketNotifierFactory(socket);
         notificationService.addNotifier(userId, socketNotifier);
+
+        // Remove notifier when disconnecting
+        socket.on("disconnect", () => {
+            notificationService.removeNotifier(socketNotifier.id);
+        });
     };
 
 export const socketHandler = (
