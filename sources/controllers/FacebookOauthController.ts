@@ -39,6 +39,9 @@ export class FacebookOauthController {
                 googleProviderPayload: null,
                 timezone: 0,
             }));
+
+            // Create default Calendar for new User
+            await this.userRepository.createDefaultCalendarForUser(user);
         }
 
         // Get User token

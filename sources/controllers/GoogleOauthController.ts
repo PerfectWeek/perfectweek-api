@@ -112,6 +112,9 @@ export class GoogleOauthController {
                 },
                 timezone: 0,
             }));
+
+            // Create default Calendar for new User
+            await this.userRepository.createDefaultCalendarForUser(user);
         }
         else if (!user.googleProviderPayload) {
             // User already exists but did not have google provider
