@@ -15,4 +15,5 @@ ENV ASSETS_ROOT_DIR /assets
 COPY ./ ./
 
 # Startup command
-CMD yarn run start
+CMD yarn run typeorm migration:run \
+    && yarn run start
