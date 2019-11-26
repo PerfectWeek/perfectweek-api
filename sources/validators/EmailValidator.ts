@@ -3,7 +3,7 @@ export class EmailValidator {
     private readonly emailRegex: RegExp;
 
     constructor() {
-        this.emailRegex = /^\w+(?:\.\w+)*@\w+(?:\.\w+)+$/;
+        this.emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     }
 
     public readonly validate = (email: string): boolean => {
