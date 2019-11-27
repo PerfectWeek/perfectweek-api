@@ -63,6 +63,54 @@ export class GoogleApiService {
         return res.data;
     }
 
+    public async updateCalendarEvents(
+        calendarId: number,
+        user: User,
+    ): Promise<void> {
+        const calendar = await this.calendarRepository.getCalendar(calendarId);
+        if (!calendar) {
+            throw new Error("Calendar not found");
+        }
+
+        if (!calendar.googleCalendarSyncToken) {
+            return;
+        }
+
+        this.oauth.setCredentials({
+            refresh_token: user.googleProviderPayload!.refreshToken,
+            access_token: user.googleProviderPayload!.accessToken,
+            token_type: user.googleProviderPayload!.tokenType,
+        });
+
+        const calendarApi = google.calendar("v3");
+
+        let nextPageToken;
+        const lastSyncToken = calendar.googleCalendarSyncToken;
+
+        const googleCalId: string = Object.keys(user.googleProviderPayload!.syncedGoogleCalendars)
+            .find(key => user.googleProviderPayload!.syncedGoogleCalendars[key] === calendarId)!;
+
+        do {
+            const events: any = await calendarApi.events.list({
+                auth: this.oauth,
+                calendarId: googleCalId,
+                syncToken: lastSyncToken ? lastSyncToken : undefined,
+                pageToken: nextPageToken,
+            });
+
+            events.data.items
+                .filter(this.isValidEvent)
+                .map((e: any) => this.loadGoogleEvent(this.eventRepository, e, calendar, user));
+
+            nextPageToken = events.data.nextPageToken;
+            if (nextPageToken === undefined) {
+                calendar.googleCalendarSyncToken = events.data.nextSyncToken;
+            }
+        } while (nextPageToken !== undefined);
+
+        return ;
+    }
+
     public async fetchGoogleCalendars(calendarMembers: CalendarMember[], user: User): Promise<Calendar[]> {
         if (!user.googleProviderPayload) {
             throw new Error("Missing providerPayload");
@@ -129,6 +177,7 @@ export class GoogleApiService {
 
     private fetchOrCreateCalendar(
         calendarMembers: CalendarMember[],
+        user: User,
         pwId: number,
         googleCalendar: calendar_v3.Schema$CalendarListEntry,
     ): Calendar {
@@ -136,6 +185,14 @@ export class GoogleApiService {
         if (pwId === undefined) {
             const calendar = new Calendar({ name: googleCalendar.summary!, color: undefined });
             calendar.entries = [];
+
+            this.calendarRepository.createCalendar(
+                calendar,
+                [{
+                    user: user,
+                    role: CalendarMemberRole.Admin,
+                    invitationConfirmed: true,
+                }]);
             return calendar;
         }
         const calendarMember = calendarMembers.find(c => c.calendarId === pwId)!;
@@ -156,7 +213,7 @@ export class GoogleApiService {
 
         const pwId = user.googleProviderPayload!.syncedGoogleCalendars[googleCalendar.id!];
         const importedCalendar = await this.fetchOrCreateCalendar(
-            calendarMembers, pwId, googleCalendar,
+            calendarMembers, user, pwId, googleCalendar,
         );
 
         let nextPageToken;
@@ -179,17 +236,9 @@ export class GoogleApiService {
                 importedCalendar.googleCalendarSyncToken = events.data.nextSyncToken;
             }
         } while (nextPageToken !== undefined);
-
-        user.googleProviderPayload!.syncedGoogleCalendars[googleCalendar.id!] = pwId;
-        this.userRepository.updateUser(user);
-        return this.calendarRepository.createCalendar(
-            importedCalendar,
-            [{
-                user: user,
-                role: CalendarMemberRole.Admin,
-                invitationConfirmed: true,
-            }],
-        );
+        user.googleProviderPayload!.syncedGoogleCalendars[googleCalendar.id!] = importedCalendar.id;
+        await this.userRepository.updateUser(user);
+        return this.calendarRepository.updateCalendar(importedCalendar);
     }
 
     private async loadGoogleEvent(

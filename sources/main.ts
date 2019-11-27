@@ -203,6 +203,7 @@ function createServer(
         calendarPolicy,
         eventPolicy,
         dateService,
+        googleApiService,
         notificationService,
         eventView,
     );

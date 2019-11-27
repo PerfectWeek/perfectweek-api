@@ -13,12 +13,14 @@ import { CalendarPolicy } from "../policies/CalendarPolicy";
 import { EventPolicy } from "../policies/EventPolicy";
 
 import { Calendar } from "../models/entities/Calendar";
+import { CalendarMember } from "../models/entities/CalendarMember";
 import { Event } from "../models/entities/Event";
 
 import { CalendarRepository } from "../models/CalendarRepository";
 import { EventRepository } from "../models/EventRepository";
 
 import { DateService } from "../services/DateService";
+import { GoogleApiService } from "../services/googleapi/GoogleApiService";
 import { NotificationService, sendNotificationToUser } from "../services/notification/NotificationService";
 
 import { getRequestingUser } from "../middleware/utils/getRequestingUser";
@@ -35,6 +37,7 @@ export class EventController {
     private readonly eventPolicy: EventPolicy;
 
     private readonly dateService: DateService;
+    private readonly googleApiService: GoogleApiService;
 
     private readonly eventView: EventView;
 
@@ -47,6 +50,7 @@ export class EventController {
         eventPolicy: EventPolicy,
         // Services
         dateService: DateService,
+        googleApiService: GoogleApiService,
         private readonly notificationService: NotificationService,
         // Views
         eventView: EventView,
@@ -58,6 +62,7 @@ export class EventController {
         this.eventPolicy = eventPolicy;
 
         this.dateService = dateService;
+        this.googleApiService = googleApiService;
 
         this.eventView = eventView;
     }
@@ -271,6 +276,22 @@ export class EventController {
         // Prevent undefined behavior
         if (exceptCalendarIds !== undefined && onlyCalendarIds !== undefined) {
             throw Boom.badRequest("only_calendar_ids and except_calendar_ids cannot be used at the same time");
+        }
+
+        // Update synced google calendars
+        if (requestingUser.googleProviderPayload) {
+            try {
+                const calendarMembers = await this.calendarRepository.getAllCalendarsForUserId(requestingUser.id);
+
+                const calendarPromises: Array<Promise<void>> = [];
+
+                calendarPromises.push(...calendarMembers.map(async (cm: CalendarMember) => {
+                    return this.googleApiService.updateCalendarEvents(cm.calendarId, requestingUser);
+                }));
+                await Promise.all(calendarPromises);
+            } catch (e) {
+                // Error is not fatal
+            }
         }
 
         // Get corresponding events
