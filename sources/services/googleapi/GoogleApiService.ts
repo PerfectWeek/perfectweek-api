@@ -87,8 +87,9 @@ export class GoogleApiService {
                 pageToken: nextPageToken,
             });
 
-            calendarsPromises.push(...gcal.data.items!.map(
-               (cal: calendar_v3.Schema$CalendarListEntry) => this.importCalendar(
+            calendarsPromises.push(...gcal.data.items!
+                .filter(this.isValidCalendar)
+                .map((cal: calendar_v3.Schema$CalendarListEntry) => this.importCalendar(
                     this.eventRepository,
                     calendarMembers,
                     cal,
@@ -123,8 +124,7 @@ export class GoogleApiService {
         return googleEvent !== undefined
             && googleEvent.start !== undefined
             && googleEvent.start.dateTime !== undefined
-            && googleEvent.summary !== undefined
-            && googleEvent.summary !== "Week Numbers";
+            && googleEvent.summary !== undefined;
     }
 
     private fetchOrCreateCalendar(
@@ -140,6 +140,10 @@ export class GoogleApiService {
         }
         const calendarMember = calendarMembers.find(c => c.calendarId === pwId)!;
         return calendarMember.calendar!;
+    }
+
+    private isValidCalendar(cal: calendar_v3.Schema$CalendarListEntry): boolean {
+        return cal.summary !== "Week Numbers";
     }
 
     private async importCalendar(
@@ -167,7 +171,7 @@ export class GoogleApiService {
             });
 
             events.data.items
-                .filter((e: any) => this.isValidEvent(e))
+                .filter(this.isValidEvent)
                 .map((e: any) => this.loadGoogleEvent(eventRepository, e, importedCalendar, user));
 
             nextPageToken = events.data.nextPageToken;
